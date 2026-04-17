@@ -78,7 +78,7 @@ const About = () => {
               transition={{ duration: 1, delay: 0.3 }}
               className="text-white/50 text-lg leading-relaxed tracking-widest font-light"
             >
-              Founded in the heart of the gold market, Vaibhav Swarn Kala Kendra has stood as a beacon of trust and artistic excellence for over three decades. Our master artisans blend ancient secrets with futuristic visions to craft pieces that are as unique as the individuals who wear them.
+              Founded in the heart of Doharighat, Vaibhav Swarn Kala Kendra has stood as a beacon of trust and artistic excellence for over three decades. As the premier jewellery store in Mau, our master artisans blend ancient secrets with futuristic visions to craft pieces that are as unique as the individuals who wear them.
             </motion.p>
 
             <motion.div 

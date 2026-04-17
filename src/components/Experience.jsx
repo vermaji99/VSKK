@@ -433,7 +433,7 @@ const Overlay = () => {
 
       <SectionDivider />
 
-      {/* 🧊 THE AURELIUS STANDARD */}
+      {/* 🧊 THE SOVEREIGN STANDARD */}
       <section id="collections" className="section-padding px-6 md:px-40 bg-rich-black relative bg-marble bg-texture-overlay bg-vignette">
         <ScrollReveal>
           <SectionTitle subtitle="Integrity">The Sovereign Standard</SectionTitle>
@@ -526,7 +526,7 @@ const Overlay = () => {
             <ScrollReveal delay={0.4}>
               <SectionTitle subtitle="Process">The Art of Creation</SectionTitle>
               <p className="mb-10 md:mb-20 text-base md:text-xl">
-                Every Aurelius creation is a story of precision, crafted by master artisans and refined through timeless techniques that have been passed down through generations. Our London atelier remains the beating heart of our innovation.
+                Every VSKK creation is a story of precision, crafted by master artisans and refined through timeless techniques that have been passed down through generations. Our Doharighat showroom remains the beating heart of our innovation.
               </p>
               <div className="flex flex-wrap justify-center lg:justify-start gap-12 md:gap-24">
                 <div className="group">
@@ -579,9 +579,9 @@ const Overlay = () => {
             <div className="timeline-line hidden lg:block opacity-30" />
             <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
               {[
-                { year: "1999", event: "Foundation of Aurelius" },
+                { year: "1999", event: "Foundation of VSKK" },
                 { year: "2008", event: "First Masterpiece Collection" },
-                { year: "2016", event: "Global Expansion" },
+                { year: "2016", event: "Expansion to New Horizons" },
                 { year: "2024", event: "The Sovereign Era" }
               ].map((step, i) => (
                 <motion.div 

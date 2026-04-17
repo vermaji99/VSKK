@@ -146,9 +146,10 @@ const Hero = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1, duration: 1.5 }}
           >
-            <h1 className="leading-[0.8] mb-4">
+            <h1 className="sr-only">Vaibhav Swarn Kala Kendra - Best Jewellery Shop in Doharighat, Mau</h1>
+            <div className="leading-[0.8] mb-4 text-[4rem] md:text-[8rem] font-premium uppercase tracking-tighter">
               ETERNAL <br /> <span className="gold-text italic">BRILLIANCE</span>
-            </h1>
+            </div>
             <div className="flex flex-col items-end">
               <span className="logo-vskk text-2xl md:text-4xl">VSKK</span>
               <p className="text-white/20 text-[8px] md:text-[10px] tracking-[1em] uppercase font-bold mt-2">EST. 1990</p>
