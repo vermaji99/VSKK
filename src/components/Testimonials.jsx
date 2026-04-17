@@ -51,7 +51,7 @@ const Testimonials = () => {
                     <img
                       src={testimonials[current].image}
                       alt={testimonials[current].name}
-                      className="w-full h-full object-cover rounded-full filter grayscale hover:grayscale-0 transition-all duration-700"
+                      className="w-full h-full object-cover rounded-full transition-all duration-700"
                     />
                   </div>
                   <div className="absolute -bottom-2 -right-2 md:-bottom-4 md:-right-4 w-12 h-12 md:w-16 md:h-16 bg-luxury-gold rounded-full flex items-center justify-center text-luxury-black">

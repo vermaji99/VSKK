@@ -217,7 +217,7 @@ const Scene = ({ scrollProgress }) => {
 
       <EffectComposer multisampling={4}>
         <Bloom intensity={0.8} luminanceThreshold={0.7} />
-        <Vignette eskil={false} offset={0.25} darkness={1.2} />
+        <Vignette eskil={false} offset={0.2} darkness={0.8} />
       </EffectComposer>
     </>
   );
@@ -395,7 +395,7 @@ const Overlay = () => {
                 <motion.img 
                   style={{ y: useTransform(scrollYProgress, [0.1, 0.3], [0, 100]) }}
                   src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80" 
-                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-[2s] group-hover:scale-110"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-all duration-[2s]"
                   alt="The Eternal Radiance"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-deep-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
@@ -492,7 +492,7 @@ const Overlay = () => {
                     whileHover={{ scale: 1.1, rotate: 2 }}
                     src={item.img} 
                     alt={item.name}
-                    className="w-full h-full object-cover transition-all duration-[2.5s] grayscale-[20%] group-hover:grayscale-0"
+                    className="w-full h-full object-cover transition-all duration-[2.5s] hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-deep-black via-transparent to-transparent opacity-40" />
                 </div>

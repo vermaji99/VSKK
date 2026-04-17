@@ -36,7 +36,7 @@ const SignatureReveal = () => {
           <motion.img 
             src="https://images.unsplash.com/photo-1602173574767-37ac01994b2a?auto=format&fit=crop&q=80"
             alt="Signature Piece"
-            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] ease-out"
+            className="w-full h-full object-cover transition-all duration-[2s] ease-out"
           />
           
           {/* Dark Overlays for "Emerging" look */}

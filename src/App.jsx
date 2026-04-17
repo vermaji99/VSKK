@@ -44,9 +44,8 @@ function App() {
 
   return (
     <div className="relative bg-luxury-black text-white selection:bg-accent-gold selection:text-black min-h-screen">
-      <div className="bg-grain" />
-      <div className="light-leak top-[-10%] left-[-10%] opacity-40" />
-      <div className="light-leak bottom-[-10%] right-[-10%] opacity-30" />
+      <div className="light-leak top-[-10%] left-[-10%] opacity-20" />
+      <div className="light-leak bottom-[-10%] right-[-10%] opacity-15" />
       
       {/* Scroll Progress Indicator */}
       <motion.div className="scroll-progress" style={{ scaleX }} />
