@@ -528,19 +528,21 @@ const Overlay = () => {
                   whileHover={{ y: -20 }}
                   className="group cursor-none"
                 >
-                  <div className="aspect-[4/5] relative overflow-hidden rounded-[4px] mb-8 md:mb-12 shadow-3xl glass-card-3d !p-0">
+                  <div className="aspect-[4/5] relative overflow-hidden rounded-[4px] mb-8 md:mb-12 shadow-3xl glass-card-3d !p-0 border border-white/5">
                     <motion.img 
-                      whileHover={{ scale: 1.1, rotate: 2 }}
+                      whileHover={{ scale: 1.05 }}
                       src={item.imageUrl} 
                       alt={item.name}
-                      className="w-full h-full object-cover transition-all duration-[2.5s] hover:scale-110"
+                      className="w-full h-full object-cover transition-all duration-[1.5s]"
+                      loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-deep-black via-transparent to-transparent opacity-40" />
-                    <div className="absolute bottom-6 left-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <p className="text-accent-gold text-[10px] tracking-[0.3em] uppercase">{item.category}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-deep-black via-transparent to-transparent opacity-60" />
+                    <div className="absolute bottom-6 left-6">
+                      <p className="text-accent-gold text-[10px] tracking-[0.3em] uppercase mb-1">{item.category}</p>
+                      <div className="w-8 h-[1px] bg-accent-gold/40" />
                     </div>
                   </div>
-                  <h4 className="text-center group-hover:text-accent-gold transition-all duration-1000 tracking-[0.2em] font-light text-white/80 group-hover:tracking-[0.3em]">
+                  <h4 className="text-center group-hover:text-accent-gold transition-all duration-700 tracking-[0.2em] font-light text-white/90 group-hover:tracking-[0.3em] uppercase text-sm md:text-base">
                     {item.name}
                   </h4>
                 </motion.div>

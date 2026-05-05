@@ -70,6 +70,12 @@ const Dashboard = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      if (!formData.name || !formData.category || (!formData.image && !formData.imageUrl)) {
+        alert("Please fill in all required fields and provide an image.");
+        setLoading(false);
+        return;
+      }
+
       let imageUrl = formData.imageUrl;
 
       if (formData.image) {
@@ -88,11 +94,13 @@ const Dashboard = () => {
 
       if (editingId) {
         await updateDoc(doc(db, 'products', editingId), productData);
+        alert("Product updated successfully!");
       } else {
         await addDoc(collection(db, 'products'), {
           ...productData,
           createdAt: new Date()
         });
+        alert("Product added successfully!");
       }
 
       setShowModal(false);
@@ -101,7 +109,7 @@ const Dashboard = () => {
       fetchProducts();
     } catch (err) {
       console.error("Error saving product:", err);
-      alert("Error saving product. Check console.");
+      alert(`Error: ${err.message}. Make sure your Firebase Storage and Firestore rules allow uploads.`);
     } finally {
       setLoading(false);
     }
@@ -276,15 +284,23 @@ const Dashboard = () => {
                   <div>
                     <label className="small-text block mb-2">Product Image</label>
                     <div className="flex flex-col md:flex-row gap-6 items-center">
-                      <div className="w-full md:w-40 aspect-square bg-white/5 border border-dashed border-white/20 flex items-center justify-center relative overflow-hidden">
+                      <div className="w-full md:w-48 aspect-square bg-white/5 border border-dashed border-white/20 flex items-center justify-center relative overflow-hidden group/preview">
                         {(formData.image || formData.imageUrl) ? (
-                          <img 
-                            src={formData.image ? URL.createObjectURL(formData.image) : formData.imageUrl} 
-                            alt="Preview" 
-                            className="w-full h-full object-cover"
-                          />
+                          <div className="relative w-full h-full">
+                            <img 
+                              src={formData.image ? URL.createObjectURL(formData.image) : formData.imageUrl} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center">
+                              <p className="text-[10px] uppercase tracking-widest text-white">Change Image</p>
+                            </div>
+                          </div>
                         ) : (
-                          <ImageIcon className="text-white/20" size={32} />
+                          <div className="text-center">
+                            <ImageIcon className="text-white/20 mx-auto mb-2" size={32} />
+                            <p className="text-[10px] uppercase tracking-widest text-white/20">Upload</p>
+                          </div>
                         )}
                         <input
                           type="file"
