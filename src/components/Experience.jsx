@@ -19,6 +19,8 @@ import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import ErrorBoundary from './ErrorBoundary';
 import { BUSINESS_DETAILS, getPhoneLink, getWhatsAppLink } from '../constants/business';
 import { Phone, MessageCircle } from 'lucide-react';
+import { db } from '../config/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -298,12 +300,50 @@ const Overlay = () => {
   const heroZoom = useTransform(scrollYProgress, [0, 0.15], [1, 1.1]);
   
   const [mobile, setMobile] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => setMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const fetchedProducts = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        if (fetchedProducts.length > 0) {
+          setProducts(fetchedProducts);
+        } else {
+          // Fallback to static products if none in DB
+          setProducts([
+            { name: "The Sovereign Necklace", imageUrl: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80", category: "Necklace" },
+            { name: "Imperial Diamond Ring", imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80", category: "Ring" },
+            { name: "Radiant Halo Earrings", imageUrl: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&q=80", category: "Earrings" }
+          ]);
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        // Fallback on error
+        setProducts([
+          { name: "The Sovereign Necklace", imageUrl: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80", category: "Necklace" },
+          { name: "Imperial Diamond Ring", imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80", category: "Ring" },
+          { name: "Radiant Halo Earrings", imageUrl: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&q=80", category: "Earrings" }
+        ]);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   const scrollToBespoke = () => {
@@ -476,32 +516,37 @@ const Overlay = () => {
       <section id="collections" className="section-padding px-6 md:px-40 bg-deep-black">
         <ScrollReveal>
           <SectionTitle subtitle="Curated">Masterpiece Collections</SectionTitle>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-20">
-            {[
-              { name: "The Sovereign Necklace", img: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80" },
-              { name: "Imperial Diamond Ring", img: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80" },
-              { name: "Radiant Halo Earrings", img: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&q=80" }
-            ].map((item, i) => (
-              <motion.div 
-                key={item.name}
-                whileHover={{ y: -20 }}
-                className="group cursor-none"
-              >
-                <div className="aspect-[4/5] overflow-hidden rounded-[4px] mb-8 md:mb-12 shadow-3xl glass-card-3d !p-0">
-                  <motion.img 
-                    whileHover={{ scale: 1.1, rotate: 2 }}
-                    src={item.img} 
-                    alt={item.name}
-                    className="w-full h-full object-cover transition-all duration-[2.5s] hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-deep-black via-transparent to-transparent opacity-40" />
-                </div>
-                <h4 className="text-center group-hover:text-accent-gold transition-all duration-1000 tracking-[0.2em] font-light text-white/80 group-hover:tracking-[0.3em]">
-                  {item.name}
-                </h4>
-              </motion.div>
-            ))}
-          </div>
+          {loadingProducts ? (
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-gold"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-20">
+              {products.map((item, i) => (
+                <motion.div 
+                  key={item.id || item.name}
+                  whileHover={{ y: -20 }}
+                  className="group cursor-none"
+                >
+                  <div className="aspect-[4/5] relative overflow-hidden rounded-[4px] mb-8 md:mb-12 shadow-3xl glass-card-3d !p-0">
+                    <motion.img 
+                      whileHover={{ scale: 1.1, rotate: 2 }}
+                      src={item.imageUrl} 
+                      alt={item.name}
+                      className="w-full h-full object-cover transition-all duration-[2.5s] hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-deep-black via-transparent to-transparent opacity-40" />
+                    <div className="absolute bottom-6 left-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                      <p className="text-accent-gold text-[10px] tracking-[0.3em] uppercase">{item.category}</p>
+                    </div>
+                  </div>
+                  <h4 className="text-center group-hover:text-accent-gold transition-all duration-1000 tracking-[0.2em] font-light text-white/80 group-hover:tracking-[0.3em]">
+                    {item.name}
+                  </h4>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </ScrollReveal>
       </section>
 
