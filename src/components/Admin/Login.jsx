@@ -27,7 +27,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-deep-black p-6">
+    <div className="min-h-screen flex items-center justify-center bg-deep-black p-6 admin-page">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -36,6 +36,10 @@ const Login = () => {
         <div className="text-center mb-10">
           <h2 className="text-3xl font-serif gold-text tracking-widest uppercase mb-2">Admin Login</h2>
           <p className="small-text !text-white/40">VSKK Management Portal</p>
+          <div className="mt-6 p-4 bg-accent-gold/5 border border-accent-gold/10 rounded-sm">
+            <p className="text-[10px] text-accent-gold/60 uppercase tracking-widest mb-1">Authorized Access Only</p>
+            <p className="text-xs text-white/40">shubhamverma66133@gmail.com</p>
+          </div>
         </div>
 
         {error && (

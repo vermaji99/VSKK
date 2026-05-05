@@ -136,7 +136,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-deep-black text-white p-6 md:p-12">
+    <div className="min-h-screen bg-deep-black text-white p-6 md:p-12 admin-page">
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
           <div>

@@ -24,9 +24,17 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  cursor: none;
   scrollbar-width: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  cursor: none;
+}
+
+/* Enable default cursor for admin pages */
+.admin-page, .admin-page * {
+  cursor: auto !important;
 }
 
 *::-webkit-scrollbar {
