@@ -70,8 +70,14 @@ const Dashboard = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!formData.name || !formData.category || (!formData.image && !formData.imageUrl)) {
-        alert("Please fill in all required fields and provide an image.");
+      if (!formData.name || !formData.category) {
+        alert("Please fill in the Product Name and Category.");
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.image && !formData.imageUrl) {
+        alert("Please provide an image by either uploading a file or pasting a URL.");
         setLoading(false);
         return;
       }
@@ -79,19 +85,37 @@ const Dashboard = () => {
       let imageUrl = formData.imageUrl;
 
       if (formData.image) {
-        const imageRef = ref(storage, `products/${Date.now()}_${formData.image.name}`);
-        await uploadBytes(imageRef, formData.image);
-        imageUrl = await getDownloadURL(imageRef);
+        console.log("Attempting to upload image to Firebase Storage...");
+        try {
+          const imageRef = ref(storage, `products/${Date.now()}_${formData.image.name}`);
+          const uploadResult = await uploadBytes(imageRef, formData.image);
+          imageUrl = await getDownloadURL(uploadResult.ref);
+          console.log("Upload successful! Image URL:", imageUrl);
+        } catch (uploadError) {
+          console.error("Firebase Storage Error:", uploadError);
+          let errorMsg = "Failed to upload image. ";
+          if (uploadError.code === 'storage/unauthorized') {
+            errorMsg += "You don't have permission. Please check your Storage Rules in Firebase Console.";
+          } else if (uploadError.message.includes('CORS')) {
+            errorMsg += "CORS block detected. Please follow the instructions to enable CORS for your bucket.";
+          } else {
+            errorMsg += uploadError.message;
+          }
+          alert(errorMsg);
+          setLoading(false);
+          return;
+        }
       }
 
       const productData = {
         name: formData.name,
-        description: formData.description,
+        description: formData.description || '',
         category: formData.category,
         imageUrl,
         updatedAt: new Date(),
       };
 
+      console.log("Saving product data to Firestore...");
       if (editingId) {
         await updateDoc(doc(db, 'products', editingId), productData);
         alert("Product updated successfully!");
