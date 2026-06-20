@@ -1,29 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Experience, { Overlay } from './components/Experience';
-import Navbar from './components/Navbar';
+import LuxuryHero from './components/LuxuryHero';
+import LuxuryNavbar from './components/LuxuryNavbar';
 import CustomCursor from './components/CustomCursor';
 import AdminLogin from './components/Admin/Login';
 import AdminDashboard from './components/Admin/Dashboard';
 import ProtectedRoute from './components/Admin/ProtectedRoute';
+import { Overlay } from './components/Experience';
 import Lenis from '@studio-freight/lenis';
 
-function MainLayout({ scrollProgress, scaleX }) {
+function MainLayout({ scrollProgress, scaleX, isHeroComplete, setIsHeroComplete }) {
+  useEffect(() => {
+    if (isHeroComplete) {
+      // Smooth scroll to the Overlay section
+      const overlaySection = document.getElementById('overlay-section');
+      if (overlaySection) {
+        overlaySection.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // Fallback: scroll by one viewport height
+        window.scrollBy({
+          top: window.innerHeight,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [isHeroComplete]);
+
   return (
-    <div className="relative bg-luxury-black text-white selection:bg-accent-gold selection:text-black min-h-screen">
-      <div className="light-leak top-[-10%] left-[-10%] opacity-20" />
-      <div className="light-leak bottom-[-10%] right-[-10%] opacity-15" />
-      
-      {/* Scroll Progress Indicator */}
-      <motion.div className="scroll-progress" style={{ scaleX }} />
-      
+    <div className="relative bg-[#020202] text-white overflow-x-hidden">
       <CustomCursor />
-      <Navbar />
+      <LuxuryNavbar />
       
       <main>
-        <Experience scrollProgress={scrollProgress} />
-        <Overlay />
+        <LuxuryHero onHeroComplete={() => setIsHeroComplete(true)} />
+        <div id="overlay-section">
+          <Overlay />
+        </div>
       </main>
     </div>
   );
@@ -31,6 +44,7 @@ function MainLayout({ scrollProgress, scaleX }) {
 
 function App() {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isHeroComplete, setIsHeroComplete] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -39,6 +53,7 @@ function App() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, { damping: 20, stiffness: 100 });
+  const lenisRef = useRef(null);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -48,9 +63,13 @@ function App() {
       wheelMultiplier: 1,
       infinite: false,
     });
+    lenisRef.current = lenis;
 
     function raf(time) {
-      lenis.raf(time);
+      // Only run Lenis if hero is complete
+      if (isHeroComplete) {
+        lenis.raf(time);
+      }
       requestAnimationFrame(raf);
     }
 
@@ -64,13 +83,13 @@ function App() {
       lenis.destroy();
       unsubscribe();
     };
-  }, [smoothProgress]);
+  }, [smoothProgress, isHeroComplete]);
 
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<MainLayout scrollProgress={scrollProgress} scaleX={scaleX} />} />
+        <Route path="/" element={<MainLayout scrollProgress={scrollProgress} scaleX={scaleX} isHeroComplete={isHeroComplete} setIsHeroComplete={setIsHeroComplete} />} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
