@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { motion } from 'framer-motion';
 
 const TOTAL_FRAMES = 201;
 
@@ -10,6 +10,9 @@ const LuxuryHero = ({ onHeroComplete }) => {
   const [isReady, setIsReady] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isHeroComplete, setIsHeroComplete] = useState(false);
+  const animationFrameRef = useRef(null);
+  const lastScrollTimeRef = useRef(0);
+  const touchStartYRef = useRef(0);
 
   // Preload images
   const images = useMemo(() => {
@@ -17,6 +20,8 @@ const LuxuryHero = ({ onHeroComplete }) => {
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
       img.src = `/assets/frames/ezgif-frame-${String(i).padStart(3, '0')}.jpg`;
+      img.decoding = 'async';
+      img.loading = 'eager';
       img.onload = () => {
         setImagesLoaded(prev => {
           const newCount = prev + 1;
@@ -29,61 +34,93 @@ const LuxuryHero = ({ onHeroComplete }) => {
     return imgArray;
   }, []);
 
-  // Canvas rendering
-  useEffect(() => {
+  // Optimized canvas rendering with requestAnimationFrame
+  const renderCanvas = useCallback((progress) => {
     if (!isReady || !canvasRef.current) return;
     
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     
-    const index = Math.floor(scrollProgress * (TOTAL_FRAMES - 1));
+    const index = Math.floor(progress * (TOTAL_FRAMES - 1));
     const clampedIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, index));
     
-    if (images[clampedIndex]) {
+    if (images[clampedIndex] && images[clampedIndex].complete) {
       const img = images[clampedIndex];
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       
-      // Cover the entire canvas maintaining aspect ratio
       const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
       const x = (canvas.width / 2) - (img.width / 2) * scale;
       const y = (canvas.height / 2) - (img.height / 2) * scale;
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
     }
-  }, [isReady, images, scrollProgress]);
+  }, [isReady, images]);
 
-  // Responsive canvas
+  // Use effect to render canvas when scrollProgress changes
   useEffect(() => {
-    const handleResize = () => {
-      if (canvasRef.current) {
-        canvasRef.current.width = window.innerWidth;
-        canvasRef.current.height = window.innerHeight;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    animationFrameRef.current = requestAnimationFrame(() => renderCanvas(scrollProgress));
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [scrollProgress, renderCanvas]);
 
-  // Scroll locking and wheel handling
+  // Responsive canvas with debouncing
+  useEffect(() => {
+    let timeoutId;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (canvasRef.current) {
+          canvasRef.current.width = window.innerWidth;
+          canvasRef.current.height = window.innerHeight;
+          renderCanvas(scrollProgress);
+        }
+      }, 100);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [scrollProgress, renderCanvas]);
+
+  // Scroll locking and wheel/touch handling with throttling
   useEffect(() => {
     if (!isReady) return;
 
     // Lock body scroll until hero is complete
     if (!isHeroComplete) {
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = '0';
+      document.body.style.left = '0';
+      document.body.style.right = '0';
     } else {
       document.body.style.overflow = 'auto';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
     }
-
-    let touchStartY = 0;
 
     const handleWheel = (e) => {
       if (isHeroComplete) return;
       e.preventDefault();
       
-      const delta = e.deltaY > 0 ? 0.01 : -0.01;
+      const now = Date.now();
+      if (now - lastScrollTimeRef.current < 16) return; // ~60fps
+      lastScrollTimeRef.current = now;
+      
+      const delta = e.deltaY > 0 ? 0.008 : -0.008;
       const newProgress = Math.max(0, Math.min(1, scrollProgress + delta));
       setScrollProgress(newProgress);
       
@@ -95,17 +132,23 @@ const LuxuryHero = ({ onHeroComplete }) => {
 
     const handleTouchStart = (e) => {
       if (isHeroComplete) return;
-      touchStartY = e.touches[0].clientY;
+      touchStartYRef.current = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e) => {
       if (isHeroComplete) return;
       e.preventDefault();
+      
+      const now = Date.now();
+      if (now - lastScrollTimeRef.current < 16) return; // ~60fps
+      lastScrollTimeRef.current = now;
+      
       const touchCurrentY = e.touches[0].clientY;
-      const delta = touchStartY - touchCurrentY > 0 ? 0.01 : -0.01;
+      const deltaY = touchStartYRef.current - touchCurrentY;
+      const delta = deltaY > 0 ? 0.008 : -0.008;
       const newProgress = Math.max(0, Math.min(1, scrollProgress + delta));
       setScrollProgress(newProgress);
-      touchStartY = touchCurrentY;
+      touchStartYRef.current = touchCurrentY;
       
       if (newProgress >= 1) {
         setIsHeroComplete(true);
@@ -122,6 +165,10 @@ const LuxuryHero = ({ onHeroComplete }) => {
 
     return () => {
       document.body.style.overflow = 'auto';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
       if (container) {
         container.removeEventListener('wheel', handleWheel);
         container.removeEventListener('touchstart', handleTouchStart);
@@ -152,6 +199,14 @@ const LuxuryHero = ({ onHeroComplete }) => {
         height: isHeroComplete ? 'auto' : '100vh'
       }}
     >
+      {/* Loading indicator */}
+      {!isReady && (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#020202]">
+          <div className="w-12 h-12 border-4 border-[#00B894] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-white/70 text-sm">Loading experience... {Math.round((imagesLoaded / TOTAL_FRAMES) * 100)}%</p>
+        </div>
+      )}
+
       {/* Hero container */}
       <div className={`${isHeroComplete ? 'h-auto' : 'h-screen'} w-full flex items-center justify-center`}>
         {/* Atmosphere layers */}
