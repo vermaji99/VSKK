@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
-const TOTAL_FRAMES = 201;
+const TOTAL_FRAMES = 81;
 
 const LuxuryHero = ({ onHeroComplete }) => {
   const containerRef = useRef(null);
@@ -19,7 +19,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
     const imgArray = [];
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
-      img.src = `/assets/frames/ezgif-frame-${String(i).padStart(3, '0')}.jpg`;
+      img.src = `/assets/frames/frame_${String(i).padStart(3, '0')}.jpg`;
       img.decoding = 'async';
       img.loading = 'eager';
       img.onload = () => {
