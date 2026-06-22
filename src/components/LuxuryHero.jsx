@@ -12,7 +12,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const animationFrameRef = useRef(null);
   const lastTouchYRef = useRef(null);
-  const debounceRef = useRef(null);
 
   // Fallback timeout to avoid infinite loading
   useEffect(() => {
@@ -50,7 +49,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
     return imgArray;
   }, []);
 
-  // Render canvas with debounce for performance
+  // Render canvas
   const renderCanvas = useCallback((progress) => {
     if (!isReady || !canvasRef.current) return;
 
@@ -66,13 +65,11 @@ const LuxuryHero = ({ onHeroComplete }) => {
     if (images[clampedIndex] && images[clampedIndex].complete) {
       const img = images[clampedIndex];
       
-      // Only update canvas dimensions if they've changed
       if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
       }
 
-      // Fit image vertically (portrait mode) with cover/fit logic
       const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
       const x = (canvas.width / 2) - (img.width / 2) * scale;
       const y = (canvas.height / 2) - (img.height / 2) * scale;
@@ -84,38 +81,33 @@ const LuxuryHero = ({ onHeroComplete }) => {
     }
   }, [isReady, images]);
 
-  // Debounce progress updates for smooth performance
-  const debouncedSetProgress = useCallback((newProgress) => {
-    if (debounceRef.current) {
-      cancelAnimationFrame(debounceRef.current);
-    }
-    debounceRef.current = requestAnimationFrame(() => {
-      setScrollProgress(prev => {
-        const clamped = Math.max(0, Math.min(1, newProgress));
-        
-        if (clamped >= 1 && !isHeroComplete) {
-          setIsHeroComplete(true);
-          onHeroComplete?.();
-        }
-        
-        return clamped;
-      });
+  // Update progress and check completion
+  const updateProgress = useCallback((delta) => {
+    const sensitivity = window.innerWidth < 768 ? 1200 : 1800;
+    setScrollProgress(prev => {
+      const newProgress = Math.max(0, Math.min(1, prev + delta / sensitivity));
+      
+      if (newProgress >= 1 && !isHeroComplete) {
+        setIsHeroComplete(true);
+        onHeroComplete?.();
+      }
+      
+      return newProgress;
     });
   }, [isHeroComplete, onHeroComplete]);
 
-  // Handle manual scroll events while body is frozen
+  // Handle scroll events for hero progress
   useEffect(() => {
     if (!isReady || isHeroComplete) return;
 
     const handleWheel = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const sensitivity = window.innerWidth < 768 ? 1500 : 2000;
-      debouncedSetProgress(prev => prev + (e.deltaY / sensitivity));
+      updateProgress(e.deltaY);
     };
 
     const handleTouchStart = (e) => {
-      if (e.touches[0]) {
+      if (e.touches && e.touches[0]) {
         lastTouchYRef.current = e.touches[0].clientY;
       }
     };
@@ -124,11 +116,10 @@ const LuxuryHero = ({ onHeroComplete }) => {
       e.preventDefault();
       e.stopPropagation();
       
-      if (e.touches[0] && lastTouchYRef.current !== null) {
+      if (e.touches && e.touches[0] && lastTouchYRef.current !== null) {
         const currentY = e.touches[0].clientY;
         const deltaY = lastTouchYRef.current - currentY;
-        const sensitivity = window.innerWidth < 768 ? 1000 : 1200;
-        debouncedSetProgress(prev => prev + (deltaY / sensitivity));
+        updateProgress(deltaY);
         lastTouchYRef.current = currentY;
       }
     };
@@ -137,7 +128,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
       lastTouchYRef.current = null;
     };
 
-    // Capture phase to override any other scroll handlers
     window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
     window.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
@@ -148,30 +138,23 @@ const LuxuryHero = ({ onHeroComplete }) => {
       window.removeEventListener('touchstart', handleTouchStart, { capture: true });
       window.removeEventListener('touchmove', handleTouchMove, { capture: true });
       window.removeEventListener('touchend', handleTouchEnd, { capture: true });
-      if (debounceRef.current) {
-        cancelAnimationFrame(debounceRef.current);
-      }
     };
-  }, [isReady, isHeroComplete, debouncedSetProgress]);
+  }, [isReady, isHeroComplete, updateProgress]);
 
   // Update canvas on progress change
   useEffect(() => {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     animationFrameRef.current = requestAnimationFrame(() => renderCanvas(scrollProgress));
-    
-    return () => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    };
   }, [scrollProgress, renderCanvas]);
 
-  // Resize handler with debounce
+  // Resize handler
   useEffect(() => {
     let resizeTimeout;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         renderCanvas(scrollProgress);
-      }, 150);
+      }, 100);
     };
     window.addEventListener('resize', handleResize);
     return () => {
@@ -181,28 +164,28 @@ const LuxuryHero = ({ onHeroComplete }) => {
   }, [scrollProgress, renderCanvas]);
 
   // 3D transforms based on scroll
-  const canvasScale = useTransform(() => 1 + (scrollProgress * 0.3));
-  const canvasRotate = useTransform(() => -(scrollProgress * 1.5));
-  const canvasY = useTransform(() => -(scrollProgress * 60));
+  const canvasScale = useTransform(() => 1 + (scrollProgress * 0.25));
+  const canvasRotate = useTransform(() => -(scrollProgress * 1));
+  const canvasY = useTransform(() => -(scrollProgress * 40));
   const glowOpacity = useTransform(() => Math.min(1, scrollProgress / 0.6));
 
   // Text animations
-  const text1Opacity = useTransform(() => 1 - Math.min(1, scrollProgress / 0.12));
+  const text1Opacity = useTransform(() => 1 - Math.min(1, scrollProgress / 0.15));
   const text2Opacity = useTransform(() => {
-    if (scrollProgress > 0.18 && scrollProgress < 0.4) return 1;
-    if (scrollProgress >= 0.18 && scrollProgress <= 0.28) return (scrollProgress - 0.18) / 0.1;
-    if (scrollProgress > 0.28 && scrollProgress <= 0.4) return 1 - (scrollProgress - 0.28) / 0.12;
+    if (scrollProgress > 0.2 && scrollProgress < 0.45) return 1;
+    if (scrollProgress >= 0.2 && scrollProgress <= 0.3) return (scrollProgress - 0.2) / 0.1;
+    if (scrollProgress > 0.3 && scrollProgress <= 0.45) return 1 - (scrollProgress - 0.3) / 0.15;
     return 0;
   });
   const text3Opacity = useTransform(() => {
-    if (scrollProgress > 0.45 && scrollProgress < 0.75) return 1;
-    if (scrollProgress >= 0.45 && scrollProgress <= 0.55) return (scrollProgress - 0.45) / 0.1;
-    if (scrollProgress > 0.55 && scrollProgress <= 0.75) return 1 - (scrollProgress - 0.55) / 0.2;
+    if (scrollProgress > 0.5 && scrollProgress < 0.78) return 1;
+    if (scrollProgress >= 0.5 && scrollProgress <= 0.6) return (scrollProgress - 0.5) / 0.1;
+    if (scrollProgress > 0.6 && scrollProgress <= 0.78) return 1 - (scrollProgress - 0.6) / 0.18;
     return 0;
   });
-  const text4Opacity = useTransform(() => Math.max(0, Math.min(1, (scrollProgress - 0.75) / 0.15)));
+  const text4Opacity = useTransform(() => Math.max(0, Math.min(1, (scrollProgress - 0.78) / 0.12)));
 
-  // Particle component with optimized rendering
+  // Particle component
   const Particle = ({ i }) => {
     const x = useMemo(() => Math.random() * 100, []);
     const y = useMemo(() => Math.random() * 100, []);
@@ -224,12 +207,12 @@ const LuxuryHero = ({ onHeroComplete }) => {
           style={{
             width: `${size}px`,
             height: `${size}px`,
-            boxShadow: '0 0 10px rgba(212,175,55,0.8), 0 0 20px rgba(212,175,55,0.5)',
+            boxShadow: '0 0 8px rgba(212,175,55,0.7), 0 0 16px rgba(212,175,55,0.4)',
           }}
           animate={{
-            y: [0, -50 - Math.random() * 50],
-            opacity: [0, 0.8, 0],
-            x: [0, (Math.random() - 0.5) * 20],
+            y: [0, -40 - Math.random() * 40],
+            opacity: [0, 0.7, 0],
+            x: [0, (Math.random() - 0.5) * 18],
           }}
           transition={{
             duration: duration,
@@ -242,7 +225,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
     );
   };
 
-  // Light beam component with optimized rendering
+  // Light beam component
   const LightBeam = ({ i }) => {
     const angle = i * 45;
     return (
@@ -255,10 +238,10 @@ const LuxuryHero = ({ onHeroComplete }) => {
           transform: `translate(-50%, -50%) rotate(${angle}deg)`,
           width: '200%',
           height: '200%',
-          background: `linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.05) 45%, rgba(212,175,55,0.1) 50%, rgba(212,175,55,0.05) 55%, transparent 100%)`,
+          background: `linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.04) 45%, rgba(212,175,55,0.08) 50%, rgba(212,175,55,0.04) 55%, transparent 100%)`,
         }}
         animate={{
-          opacity: [0.2, 0.5, 0.2],
+          opacity: [0.18, 0.45, 0.18],
         }}
         transition={{
           duration: 3 + Math.random() * 2,
@@ -288,7 +271,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
         </div>
       )}
 
-      {/* Hero container (sticky to keep canvas centered) */}
+      {/* Hero container */}
       <motion.div
         className="sticky top-0 w-full h-screen flex items-center justify-center perspective-[1200px] overflow-hidden"
       >
@@ -297,38 +280,38 @@ const LuxuryHero = ({ onHeroComplete }) => {
           <motion.div
             className="absolute inset-0"
             style={{
-              background: 'radial-gradient(circle at 30% 30%, rgba(229,211,163,0.15) 0%, transparent 60%)',
+              background: 'radial-gradient(circle at 30% 30%, rgba(229,211,163,0.12) 0%, transparent 60%)',
               opacity: glowOpacity,
             }}
             animate={{
-              opacity: [0.1, 0.3, 0.1],
+              opacity: [0.08, 0.25, 0.08],
             }}
             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           />
           <motion.div
             className="absolute inset-0"
             style={{
-              background: 'radial-gradient(circle at 70% 70%, rgba(212,175,55,0.1) 0%, transparent 50%)',
+              background: 'radial-gradient(circle at 70% 70%, rgba(212,175,55,0.08) 0%, transparent 50%)',
               opacity: glowOpacity,
             }}
             animate={{
-              opacity: [0.15, 0.25, 0.15],
+              opacity: [0.12, 0.22, 0.12],
             }}
             transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           />
         </div>
 
-        {/* Floating particles - reduced count for mobile performance */}
+        {/* Floating particles */}
         {[...Array(window.innerWidth < 768 ? 15 : 30)].map((_, i) => (
           <Particle key={i} i={i} />
         ))}
 
-        {/* Light beams - reduced for mobile */}
+        {/* Light beams */}
         {[...Array(window.innerWidth < 768 ? 2 : 4)].map((_, i) => (
           <LightBeam key={i} i={i} />
         ))}
 
-        {/* Product canvas with 3D effects */}
+        {/* Product canvas */}
         <motion.div
           className="relative z-20 w-full h-full flex items-center justify-center"
           style={{
@@ -342,12 +325,12 @@ const LuxuryHero = ({ onHeroComplete }) => {
             ref={canvasRef}
             className="absolute inset-0"
             style={{
-              filter: 'contrast(1.15) saturate(1.2) drop-shadow(0 0 50px rgba(212,175,55,0.4))',
+              filter: 'contrast(1.12) saturate(1.18) drop-shadow(0 0 45px rgba(212,175,55,0.35))',
             }}
           />
         </motion.div>
 
-        {/* Content layers with responsive design */}
+        {/* Content layers */}
         <div className="absolute inset-0 z-30 pointer-events-none">
           <div className="container mx-auto px-4 sm:px-6 lg:px-12 h-full flex flex-col justify-between py-12 sm:py-16 md:py-20">
             {/* Skip button */}
@@ -363,13 +346,12 @@ const LuxuryHero = ({ onHeroComplete }) => {
               </button>
             </div>
 
-            {/* 0% Scroll - Initial Beauty Shot */}
+            {/* 0% - Initial */}
             <motion.div
               className="flex flex-col items-center justify-center h-full text-center px-2 sm:px-4"
               style={{
                 opacity: text1Opacity,
                 transform: `translateZ(80px)`,
-                transformStyle: 'preserve-3d',
               }}
             >
               <motion.h1
@@ -378,7 +360,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
                 transition={{ duration: 2, ease: [0.23, 1, 0.32, 1] }}
                 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl xl:text-[10rem] font-black text-white/95 tracking-tighter mb-3 sm:mb-6"
                 style={{
-                  textShadow: '0 0 30px rgba(212,175,55,0.4), 0 0 60px rgba(0,0,0,0.9)',
+                  textShadow: '0 0 28px rgba(212,175,55,0.38), 0 0 55px rgba(0,0,0,0.9)',
                 }}
               >
                 CRAFTED <br className="hidden sm:block" />
@@ -407,7 +389,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
                     setIsHeroComplete(true);
                     onHeroComplete?.();
                   }}
-                  className="px-6 sm:px-8 md:px-10 lg:px-14 py-2.5 sm:py-3 md:py-4 lg:py-6 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold md:font-bold tracking-widest rounded-sm hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] md:hover:shadow-[0_0_80px_rgba(212,175,55,0.7)] transition-all duration-500 md:duration-700 hover:-translate-y-1 md:hover:-translate-y-3 hover:scale-105 text-sm sm:text-base md:text-lg lg:text-xl"
+                  className="px-6 sm:px-8 md:px-10 lg:px-14 py-2.5 sm:py-3 md:py-4 lg:py-6 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold md:font-bold tracking-widest rounded-sm hover:shadow-[0_0_28px rgba(212,175,55,0.35)] md:hover:shadow-[0_0_75px rgba(212,175,55,0.7)] transition-all duration-500 md:duration-700 hover:-translate-y-1 md:hover:-translate-y-3 hover:scale-105 text-sm sm:text-base md:text-lg lg:text-xl"
                 >
                   EXPLORE COLLECTION
                 </button>
@@ -416,14 +398,14 @@ const LuxuryHero = ({ onHeroComplete }) => {
                     setIsHeroComplete(true);
                     onHeroComplete?.();
                   }}
-                  className="px-6 sm:px-8 md:px-10 lg:px-14 py-2.5 sm:py-3 md:py-4 lg:py-6 border-2 border-white/25 text-white/90 font-medium md:font-semibold tracking-widest rounded-sm hover:border-[#D4AF37] hover:text-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] md:hover:shadow-[0_0_40px_rgba(212,175,55,0.4)] transition-all duration-500 md:duration-700 hover:scale-105 text-sm sm:text-base md:text-lg lg:text-xl"
+                  className="px-6 sm:px-8 md:px-10 lg:px-14 py-2.5 sm:py-3 md:py-4 lg:py-6 border-2 border-white/25 text-white/90 font-medium md:font-semibold tracking-widest rounded-sm hover:border-[#D4AF37] hover:text-[#D4AF37] hover:shadow-[0_0_18px rgba(212,175,55,0.3)] md:hover:shadow-[0_0_38px rgba(212,175,55,0.4)] transition-all duration-500 md:duration-700 hover:scale-105 text-sm sm:text-base md:text-lg lg:text-xl"
                 >
                   DISCOVER CRAFTSMANSHIP
                 </button>
               </motion.div>
             </motion.div>
 
-            {/* 20%-50% Scroll - Rotation & Details */}
+            {/* 20%-45% - Details */}
             <motion.div
               className="absolute inset-0 flex items-center justify-center text-center px-4 sm:px-6"
               style={{
@@ -444,7 +426,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
               </div>
             </motion.div>
 
-            {/* 50%-75% Scroll - Peak Impact */}
+            {/* 50%-78% - Stats */}
             <motion.div
               className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6"
               style={{
@@ -454,7 +436,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
             >
               <motion.h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl xl:text-8xl font-black text-white/95 tracking-tighter mb-6 sm:mb-8 md:mb-10 lg:mb-14"
                 style={{
-                  textShadow: '0 0 30px rgba(212,175,55,0.5), 0 0 60px rgba(0,0,0,0.9)',
+                  textShadow: '0 0 28px rgba(212,175,55,0.5), 0 0 55px rgba(0,0,0,0.9)',
                 }}
               >
                 Where Art Meets <span className="text-[#E5D3A3] drop-shadow-2xl">Brilliance</span>
@@ -480,7 +462,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
                   >
                     <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] bg-clip-text text-transparent mb-2 sm:mb-3 md:mb-4"
                       style={{
-                        textShadow: '0 0 15px rgba(212,175,55,0.4)',
+                        textShadow: '0 0 14px rgba(212,175,55,0.4)',
                       }}
                     >
                       {item.stat}
@@ -493,7 +475,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
               </div>
             </motion.div>
 
-            {/* 75%-100% Scroll - Final CTA */}
+            {/* 78%-100% - Final CTA */}
             <motion.div
               className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6"
               style={{
@@ -503,7 +485,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
             >
               <motion.h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl xl:text-8xl font-black text-white/95 tracking-tighter mb-6 sm:mb-8 md:mb-10 lg:mb-14"
                 style={{
-                  textShadow: '0 0 30px rgba(212,175,55,0.5), 0 0 60px rgba(0,0,0,0.9)',
+                  textShadow: '0 0 28px rgba(212,175,55,0.5), 0 0 55px rgba(0,0,0,0.9)',
                 }}
               >
                 Own the <span className="text-[#E5D3A3] drop-shadow-2xl">Extraordinary</span>
@@ -515,7 +497,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
                     setIsHeroComplete(true);
                     onHeroComplete?.();
                   }}
-                  className="px-6 sm:px-8 md:px-10 lg:px-12 xl:px-20 py-3 sm:py-3.5 md:py-4 lg:py-5 xl:py-8 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold md:font-bold lg:font-black tracking-widest rounded-sm text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl hover:shadow-[0_0_40px_rgba(212,175,55,0.5)] md:hover:shadow-[0_0_100px_rgba(212,175,55,0.8)] transition-all duration-500 md:duration-700 hover:-translate-y-2 md:hover:-translate-y-4 hover:scale-105"
+                  className="px-6 sm:px-8 md:px-10 lg:px-12 xl:px-20 py-3 sm:py-3.5 md:py-4 lg:py-5 xl:py-8 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold md:font-bold lg:font-black tracking-widest rounded-sm text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl hover:shadow-[0_0_38px rgba(212,175,55,0.5)] md:hover:shadow-[0_0_95px rgba(212,175,55,0.8)] transition-all duration-500 md:duration-700 hover:-translate-y-2 md:hover:-translate-y-4 hover:scale-105"
                 >
                   VIEW COLLECTION
                 </button>
