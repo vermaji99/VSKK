@@ -86,7 +86,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = requestAnimationFrame(() => renderCanvas(latest));
 
-      if (latest >= 1 && !isHeroComplete) {
+      if (latest >= 0.8 && !isHeroComplete) {
         setIsHeroComplete(true);
         onHeroComplete?.();
       }
@@ -132,7 +132,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       className="relative overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #020202 0%, #050505 30%, #070707 60%, #0a0a0a 100%)',
-        height: '300vh' // 3x viewport height for cinematic scroll
+        height: '150vh' // 1.5x viewport height for fast cinematic scroll
       }}
     >
       {/* Loading indicator */}
@@ -196,6 +196,19 @@ const LuxuryHero = ({ onHeroComplete }) => {
         {/* Content layers with 3D entrance */}
         <div className="absolute inset-0 z-20 pointer-events-none">
           <div className="container mx-auto px-4 sm:px-6 lg:px-12 h-full flex flex-col justify-between py-16 sm:py-20">
+            {/* Skip button */}
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 pointer-events-auto z-50">
+              <button
+                onClick={() => {
+                  setIsHeroComplete(true);
+                  onHeroComplete?.();
+                }}
+                className="px-4 py-2 border border-white/30 text-white/70 text-sm hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all duration-300 rounded-sm"
+              >
+                Skip Intro
+              </button>
+            </div>
+
             {/* 0% Scroll - Initial Beauty Shot */}
             <motion.div
               className="flex flex-col items-center justify-center h-full text-center"
@@ -232,10 +245,22 @@ const LuxuryHero = ({ onHeroComplete }) => {
                 transition={{ duration: 1.8, delay: 0.7, ease: [0.23, 1, 0.32, 1] }}
                 className="flex flex-col sm:flex-row gap-4 sm:gap-6 pointer-events-auto px-4"
               >
-                <button className="px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-bold tracking-wider rounded-sm hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all duration-700 hover:-translate-y-2 hover:scale-105 text-base sm:text-lg">
+                <button
+                  onClick={() => {
+                    setIsHeroComplete(true);
+                    onHeroComplete?.();
+                  }}
+                  className="px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-bold tracking-wider rounded-sm hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all duration-700 hover:-translate-y-2 hover:scale-105 text-base sm:text-lg"
+                >
                   EXPLORE COLLECTION
                 </button>
-                <button className="px-8 sm:px-10 py-4 sm:py-5 border-2 border-white/20 text-white/90 font-semibold rounded-sm hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-700 hover:scale-105 text-base sm:text-lg">
+                <button
+                  onClick={() => {
+                    setIsHeroComplete(true);
+                    onHeroComplete?.();
+                  }}
+                  className="px-8 sm:px-10 py-4 sm:py-5 border-2 border-white/20 text-white/90 font-semibold rounded-sm hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-700 hover:scale-105 text-base sm:text-lg"
+                >
                   DISCOVER CRAFTSMANSHIP
                 </button>
               </motion.div>
