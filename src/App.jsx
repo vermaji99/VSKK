@@ -34,9 +34,11 @@ function MainLayout({ scrollProgress, scaleX, isHeroComplete, setIsHeroComplete 
       
       <main>
         <LuxuryHero onHeroComplete={() => setIsHeroComplete(true)} />
-        <div id="overlay-section">
-          <Overlay />
-        </div>
+        {isHeroComplete && (
+          <div id="overlay-section">
+            <Overlay />
+          </div>
+        )}
       </main>
     </div>
   );
