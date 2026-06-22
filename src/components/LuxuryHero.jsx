@@ -169,22 +169,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
   const canvasY = useTransform(() => -(scrollProgress * 40));
   const glowOpacity = useTransform(() => Math.min(1, scrollProgress / 0.6));
 
-  // Text animations
-  const text1Opacity = useTransform(() => 1 - Math.min(1, scrollProgress / 0.15));
-  const text2Opacity = useTransform(() => {
-    if (scrollProgress > 0.2 && scrollProgress < 0.45) return 1;
-    if (scrollProgress >= 0.2 && scrollProgress <= 0.3) return (scrollProgress - 0.2) / 0.1;
-    if (scrollProgress > 0.3 && scrollProgress <= 0.45) return 1 - (scrollProgress - 0.3) / 0.15;
-    return 0;
-  });
-  const text3Opacity = useTransform(() => {
-    if (scrollProgress > 0.5 && scrollProgress < 0.78) return 1;
-    if (scrollProgress >= 0.5 && scrollProgress <= 0.6) return (scrollProgress - 0.5) / 0.1;
-    if (scrollProgress > 0.6 && scrollProgress <= 0.78) return 1 - (scrollProgress - 0.6) / 0.18;
-    return 0;
-  });
-  const text4Opacity = useTransform(() => Math.max(0, Math.min(1, (scrollProgress - 0.78) / 0.12)));
-
   // Particle component
   const Particle = ({ i }) => {
     const x = useMemo(() => Math.random() * 100, []);
@@ -330,189 +314,17 @@ const LuxuryHero = ({ onHeroComplete }) => {
           />
         </motion.div>
 
-        {/* Content layers */}
-        <div className="absolute inset-0 z-30 pointer-events-none">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-12 h-full flex flex-col justify-between py-12 sm:py-16 md:py-20">
-            {/* Skip button */}
-            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 pointer-events-auto z-50">
-              <button
-                onClick={() => {
-                  setIsHeroComplete(true);
-                  onHeroComplete?.();
-                }}
-                className="px-3 sm:px-5 py-1.5 sm:py-2 border border-white/30 text-white/70 text-xs sm:text-sm tracking-wider hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all duration-500 rounded-sm"
-              >
-                Skip Intro
-              </button>
-            </div>
-
-            {/* 0% - Initial */}
-            <motion.div
-              className="flex flex-col items-center justify-center h-full text-center px-2 sm:px-4"
-              style={{
-                opacity: text1Opacity,
-                transform: `translateZ(80px)`,
-              }}
-            >
-              <motion.h1
-                initial={{ y: 60, opacity: 0, rotateX: -10 }}
-                animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                transition={{ duration: 2, ease: [0.23, 1, 0.32, 1] }}
-                className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl xl:text-[10rem] font-black text-white/95 tracking-tighter mb-3 sm:mb-6"
-                style={{
-                  textShadow: '0 0 28px rgba(212,175,55,0.38), 0 0 55px rgba(0,0,0,0.9)',
-                }}
-              >
-                CRAFTED <br className="hidden sm:block" />
-                <span className="bg-gradient-to-r from-[#D4AF37] via-[#E5D3A3] to-[#D4AF37] bg-clip-text text-transparent drop-shadow-2xl">
-                  BEYOND TIME
-                </span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ y: 40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 2, delay: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                className="text-white/75 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl xl:max-w-4xl mb-8 sm:mb-10 md:mb-12"
-              >
-                Masterpieces of light, artistry and emotion.
-              </motion.p>
-
-              <motion.div
-                initial={{ y: 40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 2, delay: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                className="flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 pointer-events-auto"
-              >
-                <button
-                  onClick={() => {
-                    setIsHeroComplete(true);
-                    onHeroComplete?.();
-                  }}
-                  className="px-6 sm:px-8 md:px-10 lg:px-14 py-2.5 sm:py-3 md:py-4 lg:py-6 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold md:font-bold tracking-widest rounded-sm hover:shadow-[0_0_28px rgba(212,175,55,0.35)] md:hover:shadow-[0_0_75px rgba(212,175,55,0.7)] transition-all duration-500 md:duration-700 hover:-translate-y-1 md:hover:-translate-y-3 hover:scale-105 text-sm sm:text-base md:text-lg lg:text-xl"
-                >
-                  EXPLORE COLLECTION
-                </button>
-                <button
-                  onClick={() => {
-                    setIsHeroComplete(true);
-                    onHeroComplete?.();
-                  }}
-                  className="px-6 sm:px-8 md:px-10 lg:px-14 py-2.5 sm:py-3 md:py-4 lg:py-6 border-2 border-white/25 text-white/90 font-medium md:font-semibold tracking-widest rounded-sm hover:border-[#D4AF37] hover:text-[#D4AF37] hover:shadow-[0_0_18px rgba(212,175,55,0.3)] md:hover:shadow-[0_0_38px rgba(212,175,55,0.4)] transition-all duration-500 md:duration-700 hover:scale-105 text-sm sm:text-base md:text-lg lg:text-xl"
-                >
-                  DISCOVER CRAFTSMANSHIP
-                </button>
-              </motion.div>
-            </motion.div>
-
-            {/* 20%-45% - Details */}
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center text-center px-4 sm:px-6"
-              style={{
-                opacity: text2Opacity,
-                transform: `translateZ(120px)`,
-              }}
-            >
-              <div className="space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-12">
-                <motion.p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-white/95 font-light tracking-widest">
-                  Every detail tells a story.
-                </motion.p>
-                <motion.p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white/70">
-                  Handcrafted precision meets timeless elegance.
-                </motion.p>
-                <motion.p className="text-xs sm:text-sm md:text-base lg:text-lg text-white/55">
-                  Designed to become an heirloom.
-                </motion.p>
-              </div>
-            </motion.div>
-
-            {/* 50%-78% - Stats */}
-            <motion.div
-              className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6"
-              style={{
-                opacity: text3Opacity,
-                transform: `translateZ(160px)`,
-              }}
-            >
-              <motion.h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl xl:text-8xl font-black text-white/95 tracking-tighter mb-6 sm:mb-8 md:mb-10 lg:mb-14"
-                style={{
-                  textShadow: '0 0 28px rgba(212,175,55,0.5), 0 0 55px rgba(0,0,0,0.9)',
-                }}
-              >
-                Where Art Meets <span className="text-[#E5D3A3] drop-shadow-2xl">Brilliance</span>
-              </motion.h2>
-
-              <motion.p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-3xl text-white/70 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl xl:max-w-4xl mb-8 sm:mb-10 md:mb-12 lg:mb-16">
-                Rare gemstones. Exceptional craftsmanship. Unforgettable presence.
-              </motion.p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-12 max-w-4xl w-full pointer-events-auto">
-                {[
-                  { stat: '100%', label: 'Handcrafted' },
-                  { stat: 'Certified', label: 'Gemstones' },
-                  { stat: 'Lifetime', label: 'Craftsmanship' }
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ y: 60, opacity: 0, rotateX: 15 }}
-                    whileInView={{ y: 0, opacity: 1, rotateX: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.4, duration: 1.2, ease: 'easeOut' }}
-                    className="backdrop-blur-2xl md:backdrop-blur-3xl bg-white/5 border border-white/15 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 rounded-xl md:rounded-2xl"
-                  >
-                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] bg-clip-text text-transparent mb-2 sm:mb-3 md:mb-4"
-                      style={{
-                        textShadow: '0 0 14px rgba(212,175,55,0.4)',
-                      }}
-                    >
-                      {item.stat}
-                    </div>
-                    <div className="text-white/60 text-xs sm:text-sm md:text-base lg:text-lg tracking-widest">
-                      {item.label}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* 78%-100% - Final CTA */}
-            <motion.div
-              className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6"
-              style={{
-                opacity: text4Opacity,
-                transform: `translateZ(200px)`,
-              }}
-            >
-              <motion.h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl xl:text-8xl font-black text-white/95 tracking-tighter mb-6 sm:mb-8 md:mb-10 lg:mb-14"
-                style={{
-                  textShadow: '0 0 28px rgba(212,175,55,0.5), 0 0 55px rgba(0,0,0,0.9)',
-                }}
-              >
-                Own the <span className="text-[#E5D3A3] drop-shadow-2xl">Extraordinary</span>
-              </motion.h2>
-
-              <motion.div className="flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 pointer-events-auto">
-                <button
-                  onClick={() => {
-                    setIsHeroComplete(true);
-                    onHeroComplete?.();
-                  }}
-                  className="px-6 sm:px-8 md:px-10 lg:px-12 xl:px-20 py-3 sm:py-3.5 md:py-4 lg:py-5 xl:py-8 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold md:font-bold lg:font-black tracking-widest rounded-sm text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl hover:shadow-[0_0_38px rgba(212,175,55,0.5)] md:hover:shadow-[0_0_95px rgba(212,175,55,0.8)] transition-all duration-500 md:duration-700 hover:-translate-y-2 md:hover:-translate-y-4 hover:scale-105"
-                >
-                  VIEW COLLECTION
-                </button>
-                <button
-                  onClick={() => {
-                    setIsHeroComplete(true);
-                    onHeroComplete?.();
-                  }}
-                  className="px-6 sm:px-8 md:px-10 lg:px-12 xl:px-20 py-3 sm:py-3.5 md:py-4 lg:py-5 xl:py-8 border-2 border-white/25 text-white/90 font-medium md:font-semibold tracking-widest rounded-sm text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-500 md:duration-700 hover:scale-105"
-                >
-                  BOOK PRIVATE CONSULTATION
-                </button>
-              </motion.div>
-            </motion.div>
-          </div>
+        {/* Skip button */}
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 pointer-events-auto z-50">
+          <button
+            onClick={() => {
+              setIsHeroComplete(true);
+              onHeroComplete?.();
+            }}
+            className="px-3 sm:px-5 py-1.5 sm:py-2 border border-white/30 text-white/70 text-xs sm:text-sm tracking-wider hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all duration-500 rounded-sm"
+          >
+            Skip Intro
+          </button>
         </div>
       </motion.div>
     </section>
