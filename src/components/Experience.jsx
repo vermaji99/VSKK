@@ -17,10 +17,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import ErrorBoundary from './ErrorBoundary';
-import { BUSINESS_DETAILS, getPhoneLink, getWhatsAppLink } from '../constants/business';
+import { BUSINESS_DETAILS, getWhatsAppLink } from '../constants/business';
 import { Phone, MessageCircle } from 'lucide-react';
-import { db } from '../config/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -311,39 +309,13 @@ const Overlay = () => {
   }, []);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const fetchedProducts = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        if (fetchedProducts.length > 0) {
-          setProducts(fetchedProducts);
-        } else {
-          // Fallback to static products if none in DB
-          setProducts([
-            { name: "The Sovereign Necklace", imageUrl: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80", category: "Necklace" },
-            { name: "Imperial Diamond Ring", imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80", category: "Ring" },
-            { name: "Radiant Halo Earrings", imageUrl: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&q=80", category: "Earrings" }
-          ]);
-        }
-      } catch (err) {
-        console.error("Error fetching products:", err);
-        // Fallback on error
-        setProducts([
-          { name: "The Sovereign Necklace", imageUrl: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80", category: "Necklace" },
-          { name: "Imperial Diamond Ring", imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80", category: "Ring" },
-          { name: "Radiant Halo Earrings", imageUrl: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&q=80", category: "Earrings" }
-        ]);
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
-
-    fetchProducts();
+    // Set static products only, skip Firestore to avoid errors
+    setProducts([
+      { name: "The Sovereign Necklace", imageUrl: "./assets/standard-bg.png", category: "Necklace" },
+      { name: "Imperial Diamond Ring", imageUrl: "./assets/standard-bg.png", category: "Ring" },
+      { name: "Radiant Halo Earrings", imageUrl: "./assets/standard-bg.png", category: "Earrings" }
+    ]);
+    setLoadingProducts(false);
   }, []);
 
   const scrollToBespoke = () => {
