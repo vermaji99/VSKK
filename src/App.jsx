@@ -16,15 +16,15 @@ function MainLayout({ scrollProgress, scaleX, isHeroComplete, setIsHeroComplete 
     if (!isHeroComplete) {
       const preventScroll = (e) => e.preventDefault();
       document.body.style.overflow = 'hidden';
-      window.addEventListener('scroll', preventScroll, { passive: false });
-      window.addEventListener('wheel', preventScroll, { passive: false });
-      window.addEventListener('touchmove', preventScroll, { passive: false });
+      window.addEventListener('scroll', preventScroll, { passive: false, capture: true });
+      window.addEventListener('wheel', preventScroll, { passive: false, capture: true });
+      window.addEventListener('touchmove', preventScroll, { passive: false, capture: true });
 
       return () => {
         document.body.style.overflow = 'auto';
-        window.removeEventListener('scroll', preventScroll);
-        window.removeEventListener('wheel', preventScroll);
-        window.removeEventListener('touchmove', preventScroll);
+        window.removeEventListener('scroll', preventScroll, { capture: true });
+        window.removeEventListener('wheel', preventScroll, { capture: true });
+        window.removeEventListener('touchmove', preventScroll, { capture: true });
       };
     }
   }, [isHeroComplete]);
@@ -74,33 +74,47 @@ function App() {
 
   const smoothProgress = useSpring(scrollYProgress, { damping: 20, stiffness: 100 });
   const lenisRef = useRef(null);
+  const rafIdRef = useRef(null);
 
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.5,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
-      wheelMultiplier: 1,
-      infinite: false,
-    });
-    lenisRef.current = lenis;
+    if (isHeroComplete) {
+      const lenis = new Lenis({
+        duration: 1.5,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smooth: true,
+        wheelMultiplier: 1,
+        infinite: false,
+      });
+      lenisRef.current = lenis;
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+      function raf(time) {
+        lenis.raf(time);
+        rafIdRef.current = requestAnimationFrame(raf);
+      }
+
+      rafIdRef.current = requestAnimationFrame(raf);
+
+      const unsubscribe = smoothProgress.on("change", (latest) => {
+        setScrollProgress(latest);
+      });
+
+      return () => {
+        if (lenis) lenis.destroy();
+        if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+        unsubscribe();
+      };
+    } else {
+      // Hero not complete: clean up Lenis if it exists
+      if (lenisRef.current) {
+        lenisRef.current.destroy();
+        lenisRef.current = null;
+      }
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     }
-
-    requestAnimationFrame(raf);
-
-    const unsubscribe = smoothProgress.on("change", (latest) => {
-      setScrollProgress(latest);
-    });
-
-    return () => {
-      lenis.destroy();
-      unsubscribe();
-    };
-  }, [smoothProgress]);
+  }, [smoothProgress, isHeroComplete]);
 
   return (
     <Router>
