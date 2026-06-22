@@ -30,9 +30,13 @@ const LuxuryNavbar = () => {
           : 'py-4 sm:py-6 md:py-8'
       }`}
       style={{
-        background: isScrolled || isOpen ? 'rgba(5, 5, 5, 0.65)' : 'transparent',
-        backdropFilter: isScrolled || isOpen ? 'blur(20px)' : 'none',
-        WebkitBackdropFilter: isScrolled || isOpen ? 'blur(20px)' : 'none'
+        background: isScrolled || isOpen 
+          ? 'rgba(2, 2, 2, 0.75)' 
+          : 'rgba(2, 2, 2, 0)',
+        backdropFilter: isScrolled || isOpen ? 'blur(30px) saturate(120%)' : 'blur(0px) saturate(100%)',
+        WebkitBackdropFilter: isScrolled || isOpen ? 'blur(30px) saturate(120%)' : 'blur(0px) saturate(100%)',
+        borderBottom: isScrolled || isOpen ? '1px solid rgba(212, 175, 55, 0.15)' : '1px solid transparent',
+        boxShadow: isScrolled || isOpen ? '0 8px 32px -8px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.05) inset' : 'none'
       }}
     >
       {/* Logo */}
