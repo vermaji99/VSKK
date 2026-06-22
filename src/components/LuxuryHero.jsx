@@ -69,9 +69,10 @@ const LuxuryHero = ({ onHeroComplete }) => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+      // Fit image vertically (portrait mode)
+      const scale = canvas.height / img.height;
       const x = (canvas.width / 2) - (img.width / 2) * scale;
-      const y = (canvas.height / 2) - (img.height / 2) * scale;
+      const y = 0;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.imageSmoothingEnabled = true;
