@@ -66,10 +66,7 @@ function App() {
     lenisRef.current = lenis;
 
     function raf(time) {
-      // Only run Lenis if hero is complete
-      if (isHeroComplete) {
-        lenis.raf(time);
-      }
+      lenis.raf(time);
       requestAnimationFrame(raf);
     }
 
@@ -83,7 +80,7 @@ function App() {
       lenis.destroy();
       unsubscribe();
     };
-  }, [smoothProgress, isHeroComplete]);
+  }, [smoothProgress]);
 
   return (
     <Router>
