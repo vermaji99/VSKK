@@ -14,15 +14,32 @@ const LuxuryHero = ({ onHeroComplete }) => {
   const lastScrollTimeRef = useRef(0);
   const touchStartYRef = useRef(0);
 
+  // Fallback timeout to avoid infinite loading
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setIsReady(true);
+    }, 5000); // 5 seconds max loading time
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   // Preload images
   const images = useMemo(() => {
     const imgArray = [];
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
-      img.src = `/assets/frames/ezgif-frame-${String(i).padStart(3, '0')}.jpg`;
+      img.src = `/assets/frames/frame-${String(i).padStart(3, '0')}.jpg`;
       img.decoding = 'async';
       img.loading = 'eager';
       img.onload = () => {
+        setImagesLoaded(prev => {
+          const newCount = prev + 1;
+          if (newCount === TOTAL_FRAMES) setIsReady(true);
+          return newCount;
+        });
+      };
+      img.onerror = () => {
+        // If any image fails to load, still mark as ready to avoid hanging
         setImagesLoaded(prev => {
           const newCount = prev + 1;
           if (newCount === TOTAL_FRAMES) setIsReady(true);
