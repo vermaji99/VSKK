@@ -262,7 +262,7 @@ img {
 
 /* Texture Overlays */
 .bg-vignette {
-  box-shadow: inset 0 0 150px rgba(0,0,0,0.7);
+  box-shadow: inset 0 0 150px rgba(0,0,0,0.8);
 }
 
 .bg-texture-overlay {
@@ -287,4 +287,58 @@ img {
   background-size: cover;
   background-attachment: fixed;
   background-position: center;
+}
+
+/* Futuristic Background */
+.bg-futuristic {
+  background-image: url('/assets/futuristic-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Gold Text */
+.gold-text {
+  color: #D4AF37;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Shadow 3xl */
+.shadow-3xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.1);
+}
+
+/* Timeline Line */
+.timeline-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #D4AF37, transparent);
+}
+
+/* Perspective Scene */
+.perspective-scene {
+  perspective: 1000px;
+}
+
+/* Spotlight Effect */
+.spotlight {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  filter: blur(40px);
+}
+
+/* Glass Panel */
+.glass-panel {
+  background: rgba(2, 2, 2, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
 }

@@ -1,36 +1,27 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { motion, useTransform } from 'framer-motion';
+import { motion, useTransform, useInView } from 'framer-motion';
 
-const TOTAL_FRAMES = 41;
+const TOTAL_FRAMES = 31;
 
 // Helper to get the Lenis instance if it exists
 const getLenis = () => window.lenisInstance;
 
-const LuxuryHero = ({ onHeroComplete }) => {
+const FuturisticCinematic = () => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const [imagesLoaded, setImagesLoaded] = useState(0);
   const [isReady, setIsReady] = useState(false);
-  const [isHeroComplete, setIsHeroComplete] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const animationFrameRef = useRef(null);
   const lastTouchYRef = useRef(null);
-
-  // Fallback timeout to avoid infinite loading
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setIsReady(true);
-    }, 5000);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
+  const isInView = useInView(containerRef, { once: true, margin: '-100px 0px -100px 0px' });
 
   // Preload images
   const images = useMemo(() => {
     const imgArray = [];
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image();
-      img.src = `/assets/frames/frame_${String(i).padStart(3, '0')}.jpg`;
+      img.src = `/assets/futuristic-frames/frame_${String(i).padStart(3, '0')}.jpg`;
       img.decoding = 'async';
       img.loading = 'eager';
       img.onload = () => {
@@ -84,35 +75,25 @@ const LuxuryHero = ({ onHeroComplete }) => {
     }
   }, [isReady, images]);
 
-  // Update progress and check completion
+  // Update progress
   const updateProgress = useCallback((delta) => {
     const sensitivity = window.innerWidth < 768 ? 1200 : 1800;
     setScrollProgress(prev => {
       const newProgress = Math.max(0, Math.min(1, prev + delta / sensitivity));
-      
-      if (newProgress >= 1 && !isHeroComplete) {
-        setIsHeroComplete(true);
-      }
-      
       return newProgress;
     });
-  }, [isHeroComplete]);
+  }, []);
 
-  // Call onHeroComplete when hero completes
+  // Handle scroll events for this cinematic section
   useEffect(() => {
-    if (isHeroComplete && onHeroComplete) {
-      onHeroComplete();
-    }
-  }, [isHeroComplete, onHeroComplete]);
-
-  // Handle scroll events for hero progress
-  useEffect(() => {
-    if (!isReady || isHeroComplete) return;
+    if (!isReady || !isInView) return;
 
     const handleWheel = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      updateProgress(e.deltaY);
+      if (scrollProgress < 1) {
+        e.preventDefault();
+        e.stopPropagation();
+        updateProgress(e.deltaY);
+      }
     };
 
     const handleTouchStart = (e) => {
@@ -122,10 +103,9 @@ const LuxuryHero = ({ onHeroComplete }) => {
     };
 
     const handleTouchMove = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (e.touches && e.touches[0] && lastTouchYRef.current !== null) {
+      if (e.touches && e.touches[0] && lastTouchYRef.current !== null && scrollProgress < 1) {
+        e.preventDefault();
+        e.stopPropagation();
         const currentY = e.touches[0].clientY;
         const deltaY = lastTouchYRef.current - currentY;
         updateProgress(deltaY);
@@ -139,8 +119,11 @@ const LuxuryHero = ({ onHeroComplete }) => {
 
     // Handle Lenis scroll
     const handleLenisScroll = (event) => {
-      if (!isReady || isHeroComplete) return;
-      updateProgress(event.velocity * 100);
+      if (!isReady || !isInView) return;
+      if (scrollProgress < 1) {
+        event.preventDefault();
+        updateProgress(event.velocity * 100);
+      }
     };
 
     window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
@@ -162,7 +145,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
         lenis.off('scroll', handleLenisScroll);
       }
     };
-  }, [isReady, isHeroComplete, updateProgress]);
+  }, [isReady, isInView, updateProgress, scrollProgress]);
 
   // Update canvas on progress change
   useEffect(() => {
@@ -262,10 +245,11 @@ const LuxuryHero = ({ onHeroComplete }) => {
   return (
     <section
       ref={containerRef}
-      className="relative overflow-hidden"
+      className="relative overflow-hidden bg-transparent"
       style={{
-        background: 'linear-gradient(180deg, #000000 0%, #020202 20%, #050505 50%, #020202 80%, #000000 100%)',
-        height: '100vh'
+        height: '120vh',
+        paddingTop: '10vh',
+        paddingBottom: '10vh'
       }}
     >
       {/* Loading indicator */}
@@ -278,10 +262,26 @@ const LuxuryHero = ({ onHeroComplete }) => {
         </div>
       )}
 
-      {/* Hero container */}
+      {/* Hero container with futuristic hologram effect */}
       <motion.div
-        className="sticky top-0 w-full h-screen flex items-center justify-center perspective-[1200px] overflow-hidden"
+        className="sticky top-10 w-11/12 mx-auto h-[80vh] flex items-center justify-center perspective-[1200px] overflow-hidden rounded-3xl border border-[#D4AF37]/30"
+        style={{
+          boxShadow: '0 0 40px rgba(212,175,55,0.2), inset 0 0 40px rgba(212,175,55,0.1)',
+          background: 'radial-gradient(circle at center, rgba(2,2,2,0.95) 0%, rgba(2,2,2,0.8) 100%)'
+        }}
+        initial={{ opacity: 0, scale: 0.8, y: 100 }}
+        animate={{ opacity: isInView ? 1 : 0, scale: isInView ? 1 : 0.8, y: isInView ? 0 : 100 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
       >
+        {/* Futuristic hologram borders */}
+        <div className="absolute inset-0 z-10 pointer-events-none">
+          {/* Corner holograms */}
+          <div className="absolute top-0 left-0 w-24 h-24 border-l-2 border-t-2 border-[#D4AF37]" style={{ boxShadow: 'inset 2px 2px 10px rgba(212,175,55,0.3)' }} />
+          <div className="absolute top-0 right-0 w-24 h-24 border-r-2 border-t-2 border-[#D4AF37]" style={{ boxShadow: 'inset -2px 2px 10px rgba(212,175,55,0.3)' }} />
+          <div className="absolute bottom-0 left-0 w-24 h-24 border-l-2 border-b-2 border-[#D4AF37]" style={{ boxShadow: 'inset 2px -2px 10px rgba(212,175,55,0.3)' }} />
+          <div className="absolute bottom-0 right-0 w-24 h-24 border-r-2 border-b-2 border-[#D4AF37]" style={{ boxShadow: 'inset -2px -2px 10px rgba(212,175,55,0.3)' }} />
+        </div>
+
         {/* Volumetric fog layers */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           <motion.div
@@ -337,20 +337,24 @@ const LuxuryHero = ({ onHeroComplete }) => {
           />
         </motion.div>
 
-        {/* Skip button */}
-        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 pointer-events-auto z-50">
-          <button
-            onClick={() => {
-              setIsHeroComplete(true);
-            }}
-            className="px-3 sm:px-5 py-1.5 sm:py-2 border border-white/30 text-white/70 text-xs sm:text-sm tracking-wider hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all duration-500 rounded-sm"
-          >
-            Skip Intro
-          </button>
-        </div>
+        {/* Futuristic scanning line */}
+        <motion.div
+          className="absolute inset-0 z-30 pointer-events-none"
+          animate={{
+            background: [
+              'linear-gradient(to bottom, transparent 0%, rgba(212,175,55,0.1) 50%, transparent 100%)',
+              'linear-gradient(to bottom, transparent 100%, rgba(212,175,55,0.1) 50%, transparent 0%)',
+            ]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'linear'
+          }}
+        />
       </motion.div>
     </section>
   );
 };
 
-export default LuxuryHero;
+export default FuturisticCinematic;
