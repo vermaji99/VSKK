@@ -198,7 +198,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       className="relative overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #000000 0%, #020202 20%, #050505 50%, #020202 80%, #000000 100%)',
-        height: '200vh' // 2x viewport height for full cinematic scroll
+        height: '300vh' // 3x viewport height for complete 41-frame cinematic scroll
       }}
     >
       {/* Loading indicator */}
