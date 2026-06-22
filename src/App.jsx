@@ -11,6 +11,24 @@ import { Overlay } from './components/Experience';
 import Lenis from '@studio-freight/lenis';
 
 function MainLayout({ scrollProgress, scaleX, isHeroComplete, setIsHeroComplete }) {
+  // Freeze scroll until hero is complete
+  useEffect(() => {
+    if (!isHeroComplete) {
+      const preventScroll = (e) => e.preventDefault();
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('scroll', preventScroll, { passive: false });
+      window.addEventListener('wheel', preventScroll, { passive: false });
+      window.addEventListener('touchmove', preventScroll, { passive: false });
+
+      return () => {
+        document.body.style.overflow = 'auto';
+        window.removeEventListener('scroll', preventScroll);
+        window.removeEventListener('wheel', preventScroll);
+        window.removeEventListener('touchmove', preventScroll);
+      };
+    }
+  }, [isHeroComplete]);
+
   useEffect(() => {
     if (isHeroComplete) {
       // Smooth scroll to the Overlay section

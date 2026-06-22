@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { motion, useTransform, useScroll, useSpring } from 'framer-motion';
+import { motion, useTransform } from 'framer-motion';
 
 const TOTAL_FRAMES = 41;
 
@@ -9,14 +9,8 @@ const LuxuryHero = ({ onHeroComplete }) => {
   const [imagesLoaded, setImagesLoaded] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const [isHeroComplete, setIsHeroComplete] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const animationFrameRef = useRef(null);
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-
-  const smoothProgress = useSpring(scrollYProgress, { damping: 30, stiffness: 100 });
 
   // Fallback timeout to avoid infinite loading
   useEffect(() => {
@@ -81,23 +75,53 @@ const LuxuryHero = ({ onHeroComplete }) => {
     }
   }, [isReady, images]);
 
-  // Update canvas on progress change
+  // Handle manual scroll events while body is frozen
   useEffect(() => {
-    const unsubscribe = smoothProgress.on("change", (latest) => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = requestAnimationFrame(() => renderCanvas(latest));
+    if (!isReady || isHeroComplete) return;
 
-      if (latest >= 1.0 && !isHeroComplete) {
-        setIsHeroComplete(true);
-        onHeroComplete?.();
+    const handleScrollEvents = (e) => {
+      e.preventDefault();
+      
+      // Calculate scroll delta
+      let delta = 0;
+      if (e.type === 'wheel') {
+        delta = e.deltaY;
+      } else if (e.type === 'touchmove' && e.touches[0]) {
+        const currentY = e.touches[0].clientY;
+        const prevY = containerRef.current._prevTouchY || currentY;
+        delta = prevY - currentY;
+        containerRef.current._prevTouchY = currentY;
       }
-    });
+
+      if (delta !== 0) {
+        setScrollProgress(prev => {
+          const newProgress = prev + (delta / 2000); // Adjust sensitivity
+          const clamped = Math.max(0, Math.min(1, newProgress));
+
+          if (clamped >= 1 && !isHeroComplete) {
+            setIsHeroComplete(true);
+            onHeroComplete?.();
+          }
+
+          return clamped;
+        });
+      }
+    };
+
+    window.addEventListener('wheel', handleScrollEvents, { passive: false });
+    window.addEventListener('touchmove', handleScrollEvents, { passive: false });
 
     return () => {
-      unsubscribe();
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      window.removeEventListener('wheel', handleScrollEvents);
+      window.removeEventListener('touchmove', handleScrollEvents);
     };
-  }, [smoothProgress, renderCanvas, isHeroComplete, onHeroComplete]);
+  }, [isReady, isHeroComplete, onHeroComplete]);
+
+  // Update canvas on progress change
+  useEffect(() => {
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    animationFrameRef.current = requestAnimationFrame(() => renderCanvas(scrollProgress));
+  }, [scrollProgress, renderCanvas]);
 
   // Resize handler
   useEffect(() => {
@@ -105,7 +129,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
     const handleResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        renderCanvas(scrollYProgress.get());
+        renderCanvas(scrollProgress);
       }, 100);
     };
     window.addEventListener('resize', handleResize);
@@ -113,19 +137,29 @@ const LuxuryHero = ({ onHeroComplete }) => {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', handleResize);
     };
-  }, [scrollYProgress, renderCanvas]);
+  }, [scrollProgress, renderCanvas]);
 
   // 3D transforms based on scroll
-  const canvasScale = useTransform(smoothProgress, [0, 1], [1, 1.4]);
-  const canvasRotate = useTransform(smoothProgress, [0, 1], [0, -2]);
-  const canvasY = useTransform(smoothProgress, [0, 1], [0, -80]);
-  const glowOpacity = useTransform(smoothProgress, [0, 0.7], [0, 1]);
+  const canvasScale = useTransform(() => 1 + (scrollProgress * 0.4));
+  const canvasRotate = useTransform(() => -(scrollProgress * 2));
+  const canvasY = useTransform(() => -(scrollProgress * 80));
+  const glowOpacity = useTransform(() => Math.min(1, scrollProgress / 0.7));
 
   // Text animations
-  const text1Opacity = useTransform(smoothProgress, [0, 0.1], [1, 0]);
-  const text2Opacity = useTransform(smoothProgress, [0.15, 0.2, 0.3, 0.35], [0, 1, 1, 0]);
-  const text3Opacity = useTransform(smoothProgress, [0.45, 0.5, 0.6, 0.65], [0, 1, 1, 0]);
-  const text4Opacity = useTransform(smoothProgress, [0.8, 0.9], [0, 1]);
+  const text1Opacity = useTransform(() => 1 - Math.min(1, scrollProgress / 0.1));
+  const text2Opacity = useTransform(() => {
+    if (scrollProgress > 0.15 && scrollProgress < 0.35) return 1;
+    if (scrollProgress >= 0.15 && scrollProgress <= 0.25) return (scrollProgress - 0.15) / 0.1;
+    if (scrollProgress > 0.25 && scrollProgress <= 0.35) return 1 - (scrollProgress - 0.25) / 0.1;
+    return 0;
+  });
+  const text3Opacity = useTransform(() => {
+    if (scrollProgress > 0.45 && scrollProgress < 0.65) return 1;
+    if (scrollProgress >= 0.45 && scrollProgress <= 0.55) return (scrollProgress - 0.45) / 0.1;
+    if (scrollProgress > 0.55 && scrollProgress <= 0.65) return 1 - (scrollProgress - 0.55) / 0.1;
+    return 0;
+  });
+  const text4Opacity = useTransform(() => Math.max(0, Math.min(1, (scrollProgress - 0.8) / 0.1)));
 
   // Particle component
   const Particle = ({ i }) => {
@@ -198,7 +232,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       className="relative overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #000000 0%, #020202 20%, #050505 50%, #020202 80%, #000000 100%)',
-        height: '300vh' // 3x viewport height for complete 41-frame cinematic scroll
+        height: '100vh' // Fixed full viewport height for frozen scroll
       }}
     >
       {/* Loading indicator */}
