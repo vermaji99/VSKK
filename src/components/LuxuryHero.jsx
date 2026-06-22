@@ -86,7 +86,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = requestAnimationFrame(() => renderCanvas(latest));
 
-      if (latest >= 0.8 && !isHeroComplete) {
+      if (latest >= 1.0 && !isHeroComplete) {
         setIsHeroComplete(true);
         onHeroComplete?.();
       }
@@ -132,7 +132,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       className="relative overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #020202 0%, #050505 30%, #070707 60%, #0a0a0a 100%)',
-        height: '150vh' // 1.5x viewport height for fast cinematic scroll
+        height: '200vh' // 2x viewport height for full cinematic scroll
       }}
     >
       {/* Loading indicator */}
