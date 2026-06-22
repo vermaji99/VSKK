@@ -58,7 +58,7 @@ const LuxuryNavbar = () => {
             className="text-white/70 hover:text-white transition-all duration-500 relative group text-sm md:text-base"
           >
             {link.name}
-            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gradient-to-r from-[#00B894] to-[#24F0C7] transition-all duration-500 group-hover:w-full shadow-[0_0_10px_rgba(0,184,148,0.5)]" />
+            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] transition-all duration-500 group-hover:w-full shadow-[0_0_10px_rgba(212,175,55,0.5)]" />
           </motion.a>
         ))}
       </div>
@@ -69,7 +69,7 @@ const LuxuryNavbar = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="hidden md:block px-5 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-[#00B894] to-[#24F0C7] text-black font-semibold rounded-sm hover:shadow-[0_0_30px_rgba(0,184,148,0.4)] transition-all duration-500 hover:-translate-y-0.5 text-sm md:text-base"
+          className="hidden md:block px-5 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold rounded-sm hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 hover:-translate-y-0.5 text-sm md:text-base"
         >
           Shop Now
         </motion.button>
@@ -77,7 +77,7 @@ const LuxuryNavbar = () => {
         {/* Mobile Menu Toggle */}
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden text-white p-2 z-[1002] hover:text-[#00B894] transition-colors duration-300"
+          className="lg:hidden text-white p-2 z-[1002] hover:text-[#D4AF37] transition-colors duration-300"
           aria-label="Toggle Menu"
         >
           {isOpen ? <X size={20} sm:size={24} /> : <Menu size={20} sm:size={24} />}
@@ -103,7 +103,7 @@ const LuxuryNavbar = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
                   onClick={() => setIsOpen(false)}
-                  className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-white hover:text-[#00B894] transition-colors duration-300"
+                  className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-white hover:text-[#D4AF37] transition-colors duration-300"
                 >
                   {link.name}
                 </motion.a>
@@ -114,7 +114,7 @@ const LuxuryNavbar = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.6 }}
                 onClick={() => setIsOpen(false)}
-                className="mt-10 sm:mt-12 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 bg-gradient-to-r from-[#00B894] to-[#24F0C7] text-black font-semibold rounded-sm text-sm sm:text-base lg:text-lg"
+                className="mt-10 sm:mt-12 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold rounded-sm text-sm sm:text-base lg:text-lg"
               >
                 Shop Now
               </motion.button>

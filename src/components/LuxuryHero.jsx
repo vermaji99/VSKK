@@ -170,7 +170,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       ref={containerRef}
       className="relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #020202 0%, #050505 30%, #07110F 60%, #081A17 100%)',
+        background: 'linear-gradient(180deg, #020202 0%, #050505 30%, #070707 60%, #0a0a0a 100%)',
         height: isHeroComplete ? 'auto' : '100vh'
       }}
       onMouseMove={handleMouseMove}
@@ -179,7 +179,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
       {/* Loading indicator */}
       {!isReady && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#020202]">
-          <div className="w-12 h-12 border-4 border-[#00B894] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-white/70 text-sm">Loading experience... {Math.round((imagesLoaded / TOTAL_FRAMES) * 100)}%</p>
         </div>
       )}
@@ -191,14 +191,14 @@ const LuxuryHero = ({ onHeroComplete }) => {
           <motion.div 
             className="absolute inset-0"
             style={{
-              background: 'radial-gradient(circle at 50% 50%, rgba(0, 184, 148, 0.08) 0%, transparent 60%)',
+              background: 'radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.12) 0%, transparent 60%)',
               opacity: glowIntensity
             }}
           />
           <motion.div 
             className="absolute inset-0"
             style={{
-              background: 'radial-gradient(ellipse at 50% 40%, rgba(36, 240, 199, 0.06) 0%, transparent 50%)',
+              background: 'radial-gradient(ellipse at 50% 40%, rgba(229, 211, 163, 0.08) 0%, transparent 50%)',
               opacity: glowIntensity
             }}
           />
@@ -228,7 +228,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
           <div 
             className="absolute inset-0 pointer-events-none"
             style={{
-              boxShadow: 'inset 0 0 150px rgba(0, 214, 160, 0.15), inset 0 0 300px rgba(0, 0, 0, 0.8)'
+              boxShadow: 'inset 0 0 150px rgba(212, 175, 55, 0.15), inset 0 0 300px rgba(0, 0, 0, 0.8)'
             }}
           />
         </motion.div>
@@ -248,7 +248,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
                 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white/90 tracking-tight mb-6 px-4"
               >
                 Crafted <br />
-                <span className="bg-gradient-to-r from-[#00B894] to-[#24F0C7] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] bg-clip-text text-transparent">
                   Beyond Time
                 </span>
               </motion.h1>
@@ -268,10 +268,10 @@ const LuxuryHero = ({ onHeroComplete }) => {
                 transition={{ duration: 1.5, delay: 0.6, ease: [0.23, 1, 0.32, 1] }}
                 className="flex flex-col sm:flex-row gap-3 sm:gap-4 pointer-events-auto px-4"
               >
-                <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[#00B894] to-[#24F0C7] text-black font-semibold rounded-sm hover:shadow-[0_0_30px_rgba(0,184,148,0.4)] transition-all duration-500 hover:-translate-y-1 text-sm sm:text-base">
+                <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold rounded-sm hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 hover:-translate-y-1 text-sm sm:text-base">
                   Explore Collection
                 </button>
-                <button className="px-6 sm:px-8 py-3 sm:py-4 border border-white/20 text-white/80 font-semibold rounded-sm hover:border-[#00B894] hover:text-[#00B894] transition-all duration-500 text-sm sm:text-base">
+                <button className="px-6 sm:px-8 py-3 sm:py-4 border border-white/20 text-white/80 font-semibold rounded-sm hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-500 text-sm sm:text-base">
                   Discover Craftsmanship
                 </button>
               </motion.div>
@@ -301,7 +301,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
               style={{ opacity: opacityText3 }}
             >
               <motion.h2 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white/90 tracking-tight mb-6 sm:mb-8 px-4">
-                Where Art Meets <span className="text-[#24F0C7]">Brilliance</span>
+                Where Art Meets <span className="text-[#E5D3A3]">Brilliance</span>
               </motion.h2>
               
               <motion.p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/60 max-w-xs sm:max-w-md md:max-w-2xl mb-8 sm:mb-12 px-4">
@@ -322,7 +322,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
                     transition={{ delay: i * 0.2, duration: 0.8 }}
                     className="backdrop-blur-2xl bg-white/5 border border-white/10 p-4 sm:p-6 lg:p-8 rounded-lg"
                   >
-                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#00B894] to-[#24F0C7] bg-clip-text text-transparent mb-2">
+                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] bg-clip-text text-transparent mb-2">
                       {item.stat}
                     </div>
                     <div className="text-white/60 text-xs sm:text-sm md:text-base">
@@ -339,7 +339,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
               style={{ opacity: opacityText4 }}
             >
               <motion.h2 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white/90 tracking-tight mb-6 sm:mb-8 px-4">
-                Own the <span className="text-[#24F0C7]">Extraordinary</span>
+                Own the <span className="text-[#E5D3A3]">Extraordinary</span>
               </motion.h2>
               
               <motion.div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pointer-events-auto px-4">
@@ -348,11 +348,11 @@ const LuxuryHero = ({ onHeroComplete }) => {
                     setIsHeroComplete(true);
                     if (onHeroComplete) onHeroComplete();
                   }}
-                  className="px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 bg-gradient-to-r from-[#00B894] to-[#24F0C7] text-black font-semibold rounded-sm text-sm sm:text-base lg:text-lg hover:shadow-[0_0_40px_rgba(0,184,148,0.5)] transition-all duration-500 hover:-translate-y-1"
+                  className="px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold rounded-sm text-sm sm:text-base lg:text-lg hover:shadow-[0_0_40px_rgba(212,175,55,0.5)] transition-all duration-500 hover:-translate-y-1"
                 >
                   View Collection
                 </button>
-                <button className="px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 border border-white/20 text-white/80 font-semibold rounded-sm text-sm sm:text-base lg:text-lg hover:border-[#00B894] hover:text-[#00B894] transition-all duration-500">
+                <button className="px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 border border-white/20 text-white/80 font-semibold rounded-sm text-sm sm:text-base lg:text-lg hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-500">
                   Book Private Consultation
                 </button>
               </motion.div>
