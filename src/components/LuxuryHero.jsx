@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 const TOTAL_FRAMES = 32;
@@ -8,11 +8,9 @@ const LuxuryHero = ({ onHeroComplete }) => {
   const canvasRef = useRef(null);
   const [imagesLoaded, setImagesLoaded] = useState(0);
   const [isReady, setIsReady] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [hoverProgress, setHoverProgress] = useState(0);
   const [isHeroComplete, setIsHeroComplete] = useState(false);
   const animationFrameRef = useRef(null);
-  const lastScrollTimeRef = useRef(0);
-  const touchStartYRef = useRef(0);
 
   // Fallback timeout to avoid infinite loading
   useEffect(() => {
@@ -39,7 +37,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
         });
       };
       img.onerror = () => {
-        // If any image fails to load, still mark as ready to avoid hanging
         setImagesLoaded(prev => {
           const newCount = prev + 1;
           if (newCount === TOTAL_FRAMES) setIsReady(true);
@@ -51,8 +48,8 @@ const LuxuryHero = ({ onHeroComplete }) => {
     return imgArray;
   }, []);
 
-  // Optimized canvas rendering with requestAnimationFrame
-  const renderCanvas = useCallback((progress) => {
+  // Render canvas
+  const renderCanvas = (progress) => {
     if (!isReady || !canvasRef.current) return;
     
     const canvas = canvasRef.current;
@@ -75,32 +72,24 @@ const LuxuryHero = ({ onHeroComplete }) => {
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
     }
-  }, [isReady, images]);
+  };
 
-  // Use effect to render canvas when scrollProgress changes
+  // Update canvas on progress change
   useEffect(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-    animationFrameRef.current = requestAnimationFrame(() => renderCanvas(scrollProgress));
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    animationFrameRef.current = requestAnimationFrame(() => renderCanvas(hoverProgress));
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [scrollProgress, renderCanvas]);
+  }, [hoverProgress]);
 
-  // Responsive canvas with debouncing
+  // Resize handler
   useEffect(() => {
     let timeoutId;
     const handleResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        if (canvasRef.current) {
-          canvasRef.current.width = window.innerWidth;
-          canvasRef.current.height = window.innerHeight;
-          renderCanvas(scrollProgress);
-        }
+        renderCanvas(hoverProgress);
       }, 100);
     };
     window.addEventListener('resize', handleResize);
@@ -108,104 +97,73 @@ const LuxuryHero = ({ onHeroComplete }) => {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', handleResize);
     };
-  }, [scrollProgress, renderCanvas]);
+  }, [hoverProgress]);
 
-  // Scroll locking and wheel/touch handling with throttling
+  // Mouse & touch handlers
+  const handleMouseMove = (e) => {
+    if (isHeroComplete || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = Math.min(Math.max(x / rect.width, 0), 1);
+    setHoverProgress(percentage);
+    
+    if (percentage >= 0.95 && !isHeroComplete) {
+      setIsHeroComplete(true);
+      onHeroComplete?.();
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (isHeroComplete || !containerRef.current) return;
+    const touch = e.touches[0];
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const percentage = Math.min(Math.max(x / rect.width, 0), 1);
+    setHoverProgress(percentage);
+    
+    if (percentage >= 0.95 && !isHeroComplete) {
+      setIsHeroComplete(true);
+      onHeroComplete?.();
+    }
+  };
+
+  // Lock body scroll until hero complete
   useEffect(() => {
-    if (!isReady) return;
-
-    // Lock body scroll until hero is complete
     if (!isHeroComplete) {
+      const originalStyle = {
+        overflow: document.body.style.overflow,
+        position: document.body.style.position,
+        width: document.body.style.width,
+        height: document.body.style.height,
+        top: document.body.style.top,
+        left: document.body.style.left
+      };
+      
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
       document.body.style.top = '0';
       document.body.style.left = '0';
-      document.body.style.right = '0';
-    } else {
-      document.body.style.overflow = 'auto';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
+      
+      return () => {
+        Object.assign(document.body.style, originalStyle);
+      };
     }
+  }, [isHeroComplete]);
 
-    const handleWheel = (e) => {
-      if (isHeroComplete) return;
-      e.preventDefault();
-      
-      const now = Date.now();
-      if (now - lastScrollTimeRef.current < 16) return; // ~60fps
-      lastScrollTimeRef.current = now;
-      
-      const delta = e.deltaY > 0 ? 0.008 : -0.008;
-      const newProgress = Math.max(0, Math.min(1, scrollProgress + delta));
-      setScrollProgress(newProgress);
-      
-      if (newProgress >= 1) {
-        setIsHeroComplete(true);
-        if (onHeroComplete) onHeroComplete();
-      }
-    };
+  // Text opacities based on hover progress
+  const opacityText1 = 1 - Math.min(1, hoverProgress / 0.15);
+  const opacityText2 = hoverProgress > 0.15 && hoverProgress < 0.35 ? 1 : 
+                       hoverProgress >= 0.15 && hoverProgress <= 0.25 ? (hoverProgress - 0.15) / 0.1 :
+                       hoverProgress > 0.25 && hoverProgress <= 0.35 ? 1 - (hoverProgress - 0.25) / 0.1 : 0;
+  const opacityText3 = hoverProgress > 0.45 && hoverProgress < 0.65 ? 1 : 
+                       hoverProgress >= 0.45 && hoverProgress <= 0.55 ? (hoverProgress - 0.45) / 0.1 :
+                       hoverProgress > 0.55 && hoverProgress <= 0.65 ? 1 - (hoverProgress - 0.55) / 0.1 : 0;
+  const opacityText4 = Math.max(0, Math.min(1, (hoverProgress - 0.8) / 0.1));
 
-    const handleTouchStart = (e) => {
-      if (isHeroComplete) return;
-      touchStartYRef.current = e.touches[0].clientY;
-    };
-
-    const handleTouchMove = (e) => {
-      if (isHeroComplete) return;
-      e.preventDefault();
-      
-      const now = Date.now();
-      if (now - lastScrollTimeRef.current < 16) return; // ~60fps
-      lastScrollTimeRef.current = now;
-      
-      const touchCurrentY = e.touches[0].clientY;
-      const deltaY = touchStartYRef.current - touchCurrentY;
-      const delta = deltaY > 0 ? 0.008 : -0.008;
-      const newProgress = Math.max(0, Math.min(1, scrollProgress + delta));
-      setScrollProgress(newProgress);
-      touchStartYRef.current = touchCurrentY;
-      
-      if (newProgress >= 1) {
-        setIsHeroComplete(true);
-        if (onHeroComplete) onHeroComplete();
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('wheel', handleWheel, { passive: false });
-      container.addEventListener('touchstart', handleTouchStart, { passive: false });
-      container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    }
-
-    return () => {
-      document.body.style.overflow = 'auto';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      if (container) {
-        container.removeEventListener('wheel', handleWheel);
-        container.removeEventListener('touchstart', handleTouchStart);
-        container.removeEventListener('touchmove', handleTouchMove);
-      }
-    };
-  }, [isReady, isHeroComplete, scrollProgress, onHeroComplete]);
-
-  // Scroll transformations
-  const opacityText1 = 1 - Math.min(1, scrollProgress / 0.15);
-  const opacityText2 = scrollProgress > 0.15 && scrollProgress < 0.35 ? 1 : 
-                       scrollProgress >= 0.15 && scrollProgress <= 0.25 ? (scrollProgress - 0.15) / 0.1 :
-                       scrollProgress > 0.25 && scrollProgress <= 0.35 ? 1 - (scrollProgress - 0.25) / 0.1 : 0;
-  const opacityText3 = scrollProgress > 0.45 && scrollProgress < 0.65 ? 1 : 
-                       scrollProgress >= 0.45 && scrollProgress <= 0.55 ? (scrollProgress - 0.45) / 0.1 :
-                       scrollProgress > 0.55 && scrollProgress <= 0.65 ? 1 - (scrollProgress - 0.55) / 0.1 : 0;
-  const opacityText4 = Math.max(0, Math.min(1, (scrollProgress - 0.8) / 0.1));
-
-  const scaleProduct = 1 + (scrollProgress * 0.15);
-  const glowIntensity = Math.min(1, scrollProgress / 0.7);
+  const scaleProduct = 1 + (hoverProgress * 0.15);
+  const glowIntensity = Math.min(1, hoverProgress / 0.7);
 
   return (
     <section 
@@ -215,6 +173,8 @@ const LuxuryHero = ({ onHeroComplete }) => {
         background: 'linear-gradient(180deg, #020202 0%, #050505 30%, #07110F 60%, #081A17 100%)',
         height: isHeroComplete ? 'auto' : '100vh'
       }}
+      onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
     >
       {/* Loading indicator */}
       {!isReady && (
@@ -228,7 +188,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
       <div className={`${isHeroComplete ? 'h-auto' : 'h-screen'} w-full flex items-center justify-center`}>
         {/* Atmosphere layers */}
         <div className="absolute inset-0 z-0 pointer-events-none">
-          {/* Emerald fog */}
           <motion.div 
             className="absolute inset-0"
             style={{
@@ -236,8 +195,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
               opacity: glowIntensity
             }}
           />
-          
-          {/* Volumetric light */}
           <motion.div 
             className="absolute inset-0"
             style={{
@@ -245,8 +202,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
               opacity: glowIntensity
             }}
           />
-          
-          {/* Deep fog overlay */}
           <div 
             className="absolute inset-0"
             style={{
@@ -257,7 +212,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
 
         {/* Product canvas */}
         <motion.div 
-          className="relative z-10 w-full h-full flex items-center justify-center"
+          className="relative z-10 w-full h-full flex items-center justify-center cursor-crosshair"
           style={{ 
             scale: scaleProduct,
             height: isHeroComplete ? '100vh' : '100vh'
@@ -270,8 +225,6 @@ const LuxuryHero = ({ onHeroComplete }) => {
               filter: 'contrast(1.1) saturate(1.1)'
             }}
           />
-          
-          {/* Cinematic bloom overlay */}
           <div 
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -283,7 +236,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
         {/* Content layers */}
         <div className="absolute inset-0 z-20 pointer-events-none">
           <div className="container mx-auto px-4 sm:px-6 lg:px-12 h-full flex flex-col justify-between py-16 sm:py-20">
-            {/* 0% Scroll - Initial Beauty Shot */}
+            {/* 0% - Initial */}
             <motion.div 
               className="flex flex-col items-center justify-center h-full text-center"
               style={{ opacity: opacityText1 }}
@@ -324,7 +277,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
               </motion.div>
             </motion.div>
 
-            {/* 20%-50% Scroll - Rotation & Details */}
+            {/* 20%-50% - Details */}
             <motion.div 
               className="absolute inset-0 flex items-center justify-center text-center"
               style={{ opacity: opacityText2 }}
@@ -342,7 +295,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
               </div>
             </motion.div>
 
-            {/* 50%-80% Scroll - Peak Impact */}
+            {/* 50%-80% - Stats */}
             <motion.div 
               className="absolute inset-0 flex flex-col items-center justify-center text-center"
               style={{ opacity: opacityText3 }}
@@ -380,7 +333,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
               </div>
             </motion.div>
 
-            {/* 80%-100% Scroll - Final CTA */}
+            {/* 80%-100% - Final CTA */}
             <motion.div 
               className="absolute inset-0 flex flex-col items-center justify-center text-center"
               style={{ opacity: opacityText4 }}
