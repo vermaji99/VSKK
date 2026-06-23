@@ -14,7 +14,7 @@ const FuturisticCinematic = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const animationFrameRef = useRef(null);
   const lastTouchYRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true, margin: '-100px 0px -100px 0px' });
+  const isInView = useInView(containerRef, { once: true, amount: 1 });
 
   // Preload images
   const images = useMemo(() => {
