@@ -22,6 +22,19 @@ const LuxuryNavbar = () => {
     { name: 'About', href: '#about' }
   ];
 
+  const handleNavClick = (e, href) => {
+    e.preventDefault();
+    if (href === '#') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    setIsOpen(false);
+  };
+
   return (
     <nav 
       className={`fixed top-0 left-0 w-full z-[1000] px-4 sm:px-6 lg:px-12 flex items-center justify-between transition-all duration-700 ${
@@ -56,6 +69,7 @@ const LuxuryNavbar = () => {
           <motion.a
             key={link.name}
             href={link.href}
+            onClick={(e) => handleNavClick(e, link.href)}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1, duration: 0.6 }}
@@ -67,13 +81,14 @@ const LuxuryNavbar = () => {
         ))}
       </div>
 
-      {/* CTA Button */}
+      {/* CTA Button and Mobile Toggle */}
       <div className="flex items-center gap-3 sm:gap-4">
         <motion.button
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="hidden md:block px-5 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold rounded-sm hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 hover:-translate-y-0.5 text-sm md:text-base"
+          onClick={(e) => handleNavClick(e, '#collections')}
+          className="px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold rounded-sm hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-500 hover:-translate-y-0.5 text-xs sm:text-sm md:text-base"
         >
           Shop Now
         </motion.button>
@@ -103,10 +118,10 @@ const LuxuryNavbar = () => {
                 <motion.a
                   key={link.name}
                   href={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                  onClick={() => setIsOpen(false)}
                   className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-white hover:text-[#D4AF37] transition-colors duration-300"
                 >
                   {link.name}
@@ -117,7 +132,7 @@ const LuxuryNavbar = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.6 }}
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => handleNavClick(e, '#collections')}
                 className="mt-10 sm:mt-12 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 bg-gradient-to-r from-[#D4AF37] to-[#E5D3A3] text-black font-semibold rounded-sm text-sm sm:text-base lg:text-lg"
               >
                 Shop Now

@@ -337,17 +337,7 @@ const LuxuryHero = ({ onHeroComplete }) => {
           />
         </motion.div>
 
-        {/* Skip button */}
-        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 md:top-6 md:right-6 pointer-events-auto z-50">
-          <button
-            onClick={() => {
-              setIsHeroComplete(true);
-            }}
-            className="px-3 sm:px-5 py-1.5 sm:py-2 border border-white/30 text-white/70 text-xs sm:text-sm tracking-wider hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all duration-500 rounded-sm"
-          >
-            Skip Intro
-          </button>
-        </div>
+
       </motion.div>
     </section>
   );
