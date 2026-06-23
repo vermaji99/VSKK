@@ -12,6 +12,7 @@ const FuturisticCinematic = () => {
   const [imagesLoaded, setImagesLoaded] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const animationFrameRef = useRef(null);
   const lastTouchYRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.5 });
@@ -170,27 +171,41 @@ const FuturisticCinematic = () => {
     };
   }, [scrollProgress, renderCanvas]);
 
-  // 3D transforms based on scroll
-  const canvasScale = useTransform(() => 1 + (scrollProgress * 0.25));
-  const canvasRotate = useTransform(() => -(scrollProgress * 1));
-  const canvasY = useTransform(() => -(scrollProgress * 40));
-  const glowOpacity = useTransform(() => Math.min(1, scrollProgress / 0.6));
+  // 3D transforms based on scroll and hover
+  const canvasScale = useTransform(() => 1 + (scrollProgress * 0.35) + (isHovered ? 0.05 : 0));
+  const canvasRotate = useTransform(() => -(scrollProgress * 1.5) + (isHovered ? 0.5 : 0));
+  const canvasY = useTransform(() => -(scrollProgress * 60) + (isHovered ? -10 : 0));
+  const glowOpacity = useTransform(() => Math.min(1, scrollProgress / 0.4) + (isHovered ? 0.3 : 0));
 
-  // Particle component
-  const Particle = ({ i }) => {
-    const x = useMemo(() => Math.random() * 100, []);
-    const y = useMemo(() => Math.random() * 100, []);
+  // Particle component (now reacts to scroll and hover)
+  const Particle = ({ i, xInit, yInit }) => {
     const size = useMemo(() => Math.random() * 3 + 1, []);
-    const duration = useMemo(() => 5 + Math.random() * 10, []);
-    const delay = useMemo(() => Math.random() * 2, []);
+    const duration = useMemo(() => 4 + Math.random() * 8, []);
+    const delay = useMemo(() => Math.random() * 3, []);
+
+    const yOffset = useMemo(() => Math.random() * 40, []);
+    const xOffset = useMemo(() => (Math.random() - 0.5) * 20, []);
 
     return (
       <motion.div
         key={i}
         className="absolute pointer-events-none"
         style={{
-          left: `${x}%`,
-          top: `${y}%`,
+          left: `${xInit}%`,
+          top: `${yInit}%`,
+        }}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{
+          opacity: [0, 0.7 + (isHovered ? 0.3 : 0), 0],
+          y: [0, -40 - yOffset - (scrollProgress * 50), 0],
+          x: [0, xOffset + (scrollProgress * 10), 0],
+          scale: [1, 1.2 + (isHovered ? 0.3 : 0), 1],
+        }}
+        transition={{
+          duration: duration,
+          repeat: Infinity,
+          delay: delay,
+          ease: 'easeInOut',
         }}
       >
         <motion.div
@@ -198,18 +213,9 @@ const FuturisticCinematic = () => {
           style={{
             width: `${size}px`,
             height: `${size}px`,
-            boxShadow: '0 0 8px rgba(212,175,55,0.7), 0 0 16px rgba(212,175,55,0.4)',
-          }}
-          animate={{
-            y: [0, -40 - Math.random() * 40],
-            opacity: [0, 0.7, 0],
-            x: [0, (Math.random() - 0.5) * 18],
-          }}
-          transition={{
-            duration: duration,
-            repeat: Infinity,
-            delay: delay,
-            ease: 'easeInOut',
+            boxShadow: isHovered 
+              ? '0 0 15px rgba(212,175,55,0.9), 0 0 30px rgba(212,175,55,0.5)' 
+              : '0 0 8px rgba(212,175,55,0.7), 0 0 16px rgba(212,175,55,0.4)',
           }}
         />
       </motion.div>
@@ -232,7 +238,7 @@ const FuturisticCinematic = () => {
           background: `linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.04) 45%, rgba(212,175,55,0.08) 50%, rgba(212,175,55,0.04) 55%, transparent 100%)`,
         }}
         animate={{
-          opacity: [0.18, 0.45, 0.18],
+          opacity: [0.18, 0.45 + (isHovered ? 0.2 : 0), 0.18],
         }}
         transition={{
           duration: 3 + Math.random() * 2,
@@ -242,6 +248,20 @@ const FuturisticCinematic = () => {
       />
     );
   };
+
+  // Generate particle initial positions
+  const particles = useMemo(() => {
+    const count = window.innerWidth < 768 ? 18 : 35;
+    const arr = [];
+    for (let i = 0; i < count; i++) {
+      arr.push({
+        id: i,
+        xInit: Math.random() * 100,
+        yInit: Math.random() * 100,
+      });
+    }
+    return arr;
+  }, []);
 
   return (
     <section
@@ -267,20 +287,52 @@ const FuturisticCinematic = () => {
       <motion.div
         className="sticky top-10 w-11/12 mx-auto h-[80vh] flex items-center justify-center perspective-[1200px] overflow-hidden rounded-3xl border border-[#D4AF37]/30"
         style={{
-          boxShadow: '0 0 40px rgba(212,175,55,0.2), inset 0 0 40px rgba(212,175,55,0.1)',
+          boxShadow: isHovered 
+            ? '0 0 60px rgba(212,175,55,0.4), inset 0 0 60px rgba(212,175,55,0.2)'
+            : '0 0 40px rgba(212,175,55,0.2), inset 0 0 40px rgba(212,175,55,0.1)',
           background: 'radial-gradient(circle at center, rgba(2,2,2,0.95) 0%, rgba(2,2,2,0.8) 100%)'
         }}
         initial={{ opacity: 0, scale: 0.8, y: 100 }}
-        animate={{ opacity: isInView ? 1 : 0, scale: isInView ? 1 : 0.8, y: isInView ? 0 : 100 }}
+        animate={{ 
+          opacity: isInView ? 1 : 0, 
+          scale: isInView ? (isHovered ? 1.02 : 1) : 0.8, 
+          y: isInView ? 0 : 100,
+        }}
         transition={{ duration: 1, ease: 'easeOut' }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         {/* Futuristic hologram borders */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           {/* Corner holograms */}
-          <div className="absolute top-0 left-0 w-24 h-24 border-l-2 border-t-2 border-[#D4AF37]" style={{ boxShadow: 'inset 2px 2px 10px rgba(212,175,55,0.3)' }} />
-          <div className="absolute top-0 right-0 w-24 h-24 border-r-2 border-t-2 border-[#D4AF37]" style={{ boxShadow: 'inset -2px 2px 10px rgba(212,175,55,0.3)' }} />
-          <div className="absolute bottom-0 left-0 w-24 h-24 border-l-2 border-b-2 border-[#D4AF37]" style={{ boxShadow: 'inset 2px -2px 10px rgba(212,175,55,0.3)' }} />
-          <div className="absolute bottom-0 right-0 w-24 h-24 border-r-2 border-b-2 border-[#D4AF37]" style={{ boxShadow: 'inset -2px -2px 10px rgba(212,175,55,0.3)' }} />
+          <motion.div 
+            className="absolute top-0 left-0 w-24 h-24 border-l-2 border-t-2 border-[#D4AF37]" 
+            style={{ boxShadow: 'inset 2px 2px 10px rgba(212,175,55,0.3)' }}
+            animate={{
+              opacity: isHovered ? 1 : 0.7,
+            }}
+          />
+          <motion.div 
+            className="absolute top-0 right-0 w-24 h-24 border-r-2 border-t-2 border-[#D4AF37]" 
+            style={{ boxShadow: 'inset -2px 2px 10px rgba(212,175,55,0.3)' }}
+            animate={{
+              opacity: isHovered ? 1 : 0.7,
+            }}
+          />
+          <motion.div 
+            className="absolute bottom-0 left-0 w-24 h-24 border-l-2 border-b-2 border-[#D4AF37]" 
+            style={{ boxShadow: 'inset 2px -2px 10px rgba(212,175,55,0.3)' }}
+            animate={{
+              opacity: isHovered ? 1 : 0.7,
+            }}
+          />
+          <motion.div 
+            className="absolute bottom-0 right-0 w-24 h-24 border-r-2 border-b-2 border-[#D4AF37]" 
+            style={{ boxShadow: 'inset -2px -2px 10px rgba(212,175,55,0.3)' }}
+            animate={{
+              opacity: isHovered ? 1 : 0.7,
+            }}
+          />
         </div>
 
         {/* Volumetric fog layers */}
@@ -292,7 +344,7 @@ const FuturisticCinematic = () => {
               opacity: glowOpacity,
             }}
             animate={{
-              opacity: [0.08, 0.25, 0.08],
+              opacity: [0.08, 0.25 + (isHovered ? 0.15 : 0), 0.08],
             }}
             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           />
@@ -303,15 +355,15 @@ const FuturisticCinematic = () => {
               opacity: glowOpacity,
             }}
             animate={{
-              opacity: [0.12, 0.22, 0.12],
+              opacity: [0.12, 0.22 + (isHovered ? 0.1 : 0), 0.12],
             }}
             transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           />
         </div>
 
         {/* Floating particles */}
-        {[...Array(window.innerWidth < 768 ? 15 : 30)].map((_, i) => (
-          <Particle key={i} i={i} />
+        {particles.map((particle) => (
+          <Particle key={particle.id} i={particle.id} xInit={particle.xInit} yInit={particle.yInit} />
         ))}
 
         {/* Light beams */}
@@ -333,7 +385,9 @@ const FuturisticCinematic = () => {
             ref={canvasRef}
             className="absolute inset-0"
             style={{
-              filter: 'contrast(1.12) saturate(1.18) drop-shadow(0 0 45px rgba(212,175,55,0.35))',
+              filter: isHovered 
+                ? 'contrast(1.2) saturate(1.25) drop-shadow(0 0 60px rgba(212,175,55,0.5))'
+                : 'contrast(1.12) saturate(1.18) drop-shadow(0 0 45px rgba(212,175,55,0.35))',
             }}
           />
         </motion.div>
@@ -345,10 +399,11 @@ const FuturisticCinematic = () => {
             background: [
               'linear-gradient(to bottom, transparent 0%, rgba(212,175,55,0.1) 50%, transparent 100%)',
               'linear-gradient(to bottom, transparent 100%, rgba(212,175,55,0.1) 50%, transparent 0%)',
-            ]
+            ],
+            opacity: isHovered ? 0.8 : 0.5,
           }}
           transition={{
-            duration: 3,
+            duration: isHovered ? 2 : 3,
             repeat: Infinity,
             ease: 'linear'
           }}
