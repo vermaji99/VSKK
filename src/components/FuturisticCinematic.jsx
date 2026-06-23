@@ -14,7 +14,7 @@ const FuturisticCinematic = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const animationFrameRef = useRef(null);
   const lastTouchYRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true, amount: 1 });
+  const isInView = useInView(containerRef, { once: true, amount: 0.5 });
 
   // Preload images
   const images = useMemo(() => {
@@ -53,17 +53,18 @@ const FuturisticCinematic = () => {
       willReadFrequently: false 
     });
 
+    // Always update canvas size first
+    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
     const index = Math.floor(progress * (TOTAL_FRAMES - 1));
     const clampedIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, index));
 
     if (images[clampedIndex] && images[clampedIndex].complete) {
       const img = images[clampedIndex];
       
-      if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }
-
       const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
       const x = (canvas.width / 2) - (img.width / 2) * scale;
       const y = (canvas.height / 2) - (img.height / 2) * scale;
@@ -147,11 +148,11 @@ const FuturisticCinematic = () => {
     };
   }, [isReady, isInView, updateProgress, scrollProgress]);
 
-  // Update canvas on progress change
+  // Update canvas when ready or on progress change
   useEffect(() => {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     animationFrameRef.current = requestAnimationFrame(() => renderCanvas(scrollProgress));
-  }, [scrollProgress, renderCanvas]);
+  }, [isReady, scrollProgress, renderCanvas]);
 
   // Resize handler
   useEffect(() => {
